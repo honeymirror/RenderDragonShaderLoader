@@ -1,5 +1,7 @@
 # RenderDragonShaderLoader
 
+[English](README_EN.md) | 简体中文
+
 在 Minecraft Bedrock（RenderDragon 渲染管线）里**管理第三方光影包**、**热重载**、
 并用 Iris 风格的界面调整光影自定义参数的 **LeviLamina 客户端模组**。
 
