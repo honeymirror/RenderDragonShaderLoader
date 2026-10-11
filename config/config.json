@@ -1,0 +1,13 @@
+{
+    "version": 5,
+    "enabled": true,
+    "dataDir": "data",
+    "shaderPacksDir": "shaderpacks",
+    "generatedDir": "generated",
+    "vanillaDir": "",
+    "lazuriteCommand": "python -m lazurite",
+    "shadercPath": "",
+    "skipValidation": true,
+    "uiBackdrop": 0.0,
+    "uiKey": "G"
+}

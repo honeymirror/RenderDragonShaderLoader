@@ -1,0 +1,6 @@
+{
+  "base_profile": {
+    "platforms": ["Direct3D_SM40", "Direct3D_SM50", "Direct3D_SM60", "Direct3D_SM65"],
+    "merge_source": ["vanilla"]
+  }
+}
