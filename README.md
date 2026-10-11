@@ -92,4 +92,6 @@ docs/           光影包格式说明
 - [Lamium](https://github.com/amatouhake/Lamium)：**本模组 UI 参考了该项目**，包括自绘屏幕和输入接管实现。
 
 以上项目均未随本仓库分发第三方二进制或资源文件，仅作为设计与实现参考。
-- 许可：见 `LICENSE`。
+
+- 许可：本项目使用 LGPL-3.0，见 [`LICENSE`](LICENSE)。
+- 第三方项目、依赖与分发说明见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。

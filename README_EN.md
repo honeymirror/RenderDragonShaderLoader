@@ -116,4 +116,6 @@ docs/           Shader pack format documentation
 No third-party binaries or resources from these projects are distributed with this repository.
 They are listed only as design and implementation references.
 
-- License: see `LICENSE`.
+- License: this project is licensed under LGPL-3.0. See [`LICENSE`](LICENSE).
+- Third-party projects, dependencies, and distribution notes are listed in
+  [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
