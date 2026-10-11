@@ -7,7 +7,8 @@
 >
 > 当前发布：**0.1.0-beta**（预发布；只包含"光影包管理 + 参数界面"，见下面的"还没打通的"）
 >
-> 导入格式：当前只支持 `.zip` 光影包，**不支持 `.mcpack`**。
+> 导入格式：当前只支持 `.zip` 光影包，暂**不支持 `.mcpack`**。
+> 如需使用 `.mcpack`，请先手动将文件后缀名改为 `.zip` 后再导入。
 
 ## 现在能做什么
 
@@ -48,9 +49,9 @@
 
 ## 还没打通的
 
-- **不含编译链路**：本模组不会调用 lazurite / shaderc 编译着色器，**只加载光影包自带的
+- **暂不含编译链路**：本模组暂时不会调用 lazurite / shaderc 编译着色器，**只加载光影包自带的
   `.material.bin`**。所以包能不能用，取决于它有没有已经编译好的产物
-  （格式见 [`docs/shader-pack-format.md`](docs/shader-pack-format.md)）
+  （格式见 [`docs/shader-pack-format.md`](docs/shader-pack-format.md)）。自定义参数编译功能仍在开发中。
 - 设置页目前只把参数值存进 `data/shaderpacks/<包名>.zip.txt`；**参数要真正影响画面，
   得等编译链路接上**（或包本身就带好对应产物）
 - 热重载（`readFile` 重定向 + `reloadMaterial`）代码已就位，但还没在游戏内充分验证
@@ -85,8 +86,8 @@ docs/           光影包格式说明
 
 - [Iris](https://github.com/IrisShaders/Iris)：参考其光影参数界面、参数分类方式、滑块交互和点击音效表现。
 - [OptiFine](https://optifine.net/)：参考其 `shaders.properties` 参数表达方式和 `shaderpacks` 目录约定。
-- [Lamium](https://github.com/amatouhake/Lamium)：参考自绘屏幕和输入接管实现。
-- BetterRenderDragon：参考材质热重载思路。
+- [BetterRenderDragon](https://github.com/QYCottage/BetterRenderDragon)：参考材质热重载思路。
+- [Lamium](https://github.com/amatouhake/Lamium)：**本模组 UI 参考了该项目**，包括自绘屏幕和输入接管实现。
 
 以上项目均未随本仓库分发第三方二进制或资源文件，仅作为设计与实现参考。
 - 许可：见 `LICENSE`。
