@@ -12,9 +12,9 @@
 #include "ui/UiSettings.h"
 
 // 界面的「核心」：状态机 + 版式 + 交互 + 绘制指令，全部不依赖游戏类型，
-// 因此可以被不同宿主共用：
-//   - 游戏内：ShaderManagerScreen（占位屏幕 / 事件 / hook / 材质热重载）；
-//   - 其他宿主只要实现 ui::Canvas 与 ScreenHost 就能复用同一份界面代码。
+// 因此可以被两个宿主共用：
+//   - 游戏内：ShaderManagerScreen（占位屏幕 / 事件 / hook / 编译服务）；
+//   - 独立预览器：tools/ui_preview（Win32 窗口 + GDI），不启动游戏即可调界面。
 // 数据源是 core/ShaderPack 的 ShaderPackStore（同样不依赖游戏）。
 namespace renderdragon_shader_loader::ui {
 
@@ -22,6 +22,7 @@ namespace renderdragon_shader_loader::ui {
 struct ScreenHost {
     std::function<std::string(std::string_view)>      translate;      // 文案（i18n）
     std::function<void(std::string const&)>           log;            // 诊断日志（可空）
+    std::function<bool(ShaderPack const&)>            compile;        // 编译选中包（返回是否已开始）
     std::function<void(ShaderPack const&)>            reload;         // 热重载材质
     std::function<void()>                             restoreVanilla; // 关掉光影：回到原版材质
     std::function<void()>                             openFolder;     // 打开光影包目录
@@ -33,14 +34,27 @@ struct ScreenHost {
     std::function<bool(std::string const& suggestedName, std::string const& text)>   exportSettings;
     std::function<void()>                             playClick;      // 按钮/调参数时的 UI 点击音效
     std::function<void()>                             closeScreen;    // 关闭界面（游戏侧弹占位屏幕）
+    std::function<bool()>                             compiling;      // 是否正在编译
+    std::function<std::string()>                      statusMessage;  // 编译状态/最近一次结果
+    std::function<bool()>                             statusFailed;   // 最近一次编译是否失败
+    // 模组设置页（底栏左下角「设置」按钮打开）：读写 config.json 里的开关与面板热键。
+    // key = "uiKey" / "forceVibrantVisuals" / "autoLoadLastShader" / "graphicsModeOverride"。
+    std::function<std::string(std::string const& key)>                    readSetting;
+    std::function<bool(std::string const& key, std::string const& value)> writeSetting;
+    // 「应用 / 完成」真正生效后回传：记住这次用的光影（空名字 = 回到原版材质），下次启动恢复。
+    std::function<void(std::string const& packName, bool enabled)>        rememberSelection;
 };
 
 enum class MouseButton { Left = 1, Right = 2 };
 
 class Screen {
 public:
-    // List = 光影包列表；Settings = Iris 风格的自定义参数设置界面。
-    enum class Mode { List, Settings };
+    // List = 光影包列表；Settings = Iris 风格的自定义参数设置界面；
+    // Preferences = 模组自己的设置页（面板热键 / 强制灵动视效 / 自动加载上次光影）。
+    enum class Mode { List, Settings, Preferences };
+
+    // 键盘焦点所在的那一组控件。方向键会在组内移动，到边界再跨组。
+    enum class Focus { Content, Header, Bottom, Preview, SettingsButton };
 
     void setHost(ScreenHost host) { mHost = std::move(host); }
 
@@ -71,6 +85,8 @@ public:
 
     // 编译进行中：整个界面锁死，宿主应吞掉输入。
     [[nodiscard]] bool blocked() const;
+    // 设置页正在"录键位"：宿主别把按键当成开/关面板的热键。
+    [[nodiscard]] bool capturingKey() const { return mKeyCapture; }
     // 「完成」在编译结束后的排队动作还没处理完。
     [[nodiscard]] bool waitingToReturn() const { return mPending != Pending::None; }
     // 透明预览模式：只画右下角按钮，其余内容全隐藏。
@@ -80,6 +96,13 @@ public:
     [[nodiscard]] SettingsLayout const& settingsLayout() const { return mSettingsLayout; }
     [[nodiscard]] SettingsModel const&   settingsModel() const { return mSettings; }
     [[nodiscard]] Mode          mode() const { return mMode; }
+    // 当前键盘焦点（测试 / 离线预览器用来断言方向键走位）。
+    [[nodiscard]] Focus focusZone() const { return mFocus; }
+    [[nodiscard]] int   focusIndex() const { return mFocusIndex; }
+
+    // 宿主告诉界面"现在真正生效的光影是哪个"（启动时按配置自动恢复后调用），
+    // 否则界面会以为是"原版材质"、把已经挂着的包显示成没启用。
+    void setAppliedShaderPack(std::string const& packName, bool enabled);
 
 private:
     std::string tr(std::string_view key) const;
@@ -97,6 +120,8 @@ private:
     void drawBottomBar(Canvas& canvas, float width, float height);
     void drawButton(Canvas& canvas, Rect const& r, std::string const& value, int index);
     void drawPreviewButton(Canvas& canvas);
+    // 左下角「设置」按钮（打开模组设置页）。
+    void drawSettingsButton(Canvas& canvas);
     // Iris 风格右侧滚动条：贴屏幕最右缘，暗色轨道 + 浅灰滑块。
     void drawScrollBar(Canvas& canvas, Rect const& track, Rect const& handle);
     // 列表/参数页底部那行状态文字（编译进度、我们的提示等）。
@@ -108,6 +133,15 @@ private:
     void              activateButton(int index);
     void              adjustSelected(int delta);
     void              selectRow(int delta);
+    // 底栏 / 右下角 / 左下角这几个「按钮区」共用的焦点判断与方向键移动。
+    [[nodiscard]] bool bottomFocused(int index) const {
+        return mFocus == Focus::Bottom && mFocusIndex == index;
+    }
+    [[nodiscard]] bool headerFocused(int index) const {
+        return mFocus == Focus::Header && mFocusIndex == index;
+    }
+    bool moveButtonFocus(int dx, int dy); // 在按钮区里按几何位置找邻居
+    void focusContent();                  // 焦点回到内容区
     [[nodiscard]] int contentCount() const;
     // 列表页：第 0 项是"光影：已启用/已禁用"开关，后面才是各个包。
     [[nodiscard]] int  listFirstVisible() const;
@@ -131,6 +165,12 @@ private:
     void settingsGoBack();                        // 返回上一层；已在顶层就回列表页
     void leaveSettings();                        // 返回列表页
     bool handleSettingsKey(int keyCode);         // 设置页键盘；返回是否已处理
+    bool handleListKey(int keyCode);             // 列表页键盘（焦点在内容区时）
+    bool handleHeaderKey(int keyCode);           // 设置页顶栏四个按钮
+    bool handleBottomKey(int keyCode);           // 底栏五个按钮
+    bool handlePreviewKey(int keyCode);          // 右下角透明预览按钮
+    bool handleSettingsButtonKey(int keyCode);   // 左下角设置按钮
+    bool handleKeyCapture(int keyCode);          // 设置页录键位
     void moveSettingSelection(int dx, int dy);   // 方向键移动选择（跳过分类）
     void clampSettingScroll();                   // 保证选中项可见
     void updateSettingDrag(float x, float y);    // 拖动滑块：按指针 x 落到对应数值
@@ -143,12 +183,26 @@ private:
     [[nodiscard]] std::string suggestedSettingsFileName() const; // <包名>.txt
     int                       applySettingsText(std::string const& text); // 返回成功应用的条数
 
+    // ---- 模组设置页（Preferences）----
+    void enterPreferences();     // 打开设置页（按 config 生成模型）
+    void leavePreferences();     // 退出设置页（返回列表页）
+    void buildPreferencesModel();
+    void applyPreferences();     // 「应用」：把界面里的值写回 config.json
+    void discardPreferences();   // 「取消」：回到进来时的值
+    [[nodiscard]] bool preferencesDirty() const;
+
     bool  mVisible     = false;
     Mode  mMode        = Mode::List;
     int   mPack        = 0;
     int   mRow         = 0;  // List=包下标
-    int   mButtonFocus = -1; // -1 = 焦点在内容区
-    int   mHeaderFocus = -1; // 设置页顶栏按钮焦点（0=返回 1..3=导入/导出/重置）
+    // 键盘焦点：方向键在 Content（列表行/参数行）、Header（设置页顶栏 0..3）、
+    // Bottom（底栏 0..4）、Preview（右下角）、SettingsButton（左下角）之间移动。
+    Focus mFocus      = Focus::Content;
+    int   mFocusIndex = 0;
+    // 上一次停在哪个顶栏按钮（从内容区往上走时回到这里）。
+    int   mHeaderRestore = 0;
+    // 设置页正在等玩家按一个键来绑定（按 Esc 取消）。
+    bool  mKeyCapture = false;
     float mMouseX      = -1.f;
     float mMouseY      = -1.f;
     bool  mMouseDown   = false;
@@ -162,11 +216,10 @@ private:
     Layout     mLayout;
     ScreenHost mHost;
 
-    SettingsModel   mSettings;        // 当前设置页模型（本期 = makeDemoSettings 的假参数）
+    SettingsModel   mSettings;        // 当前设置页模型（光影包参数 / 模组设置页的开关）
     SettingsLayout  mSettingsLayout;  // 上一帧的设置页版式（命中测试用）
     std::vector<int> mSettingsView;   // 当前这一页显示的项（模型下标）
-    // -1 = 顶层分类页（按钮网格）；-2 = 包里没有分类时的"整页参数"；>= 0 = 某个分类的模型下标
-    int             mSettingsPage = -1;
+    int             mSettingsPage = -1; // -1 = 顶层分类页；否则是分类项的模型下标
     int             mSettingsHover = -1; // 本帧鼠标悬停的项（滑块靠它展开）
     int             mSettingIndex = -1;
     float           mSettingScroll = 0.f;

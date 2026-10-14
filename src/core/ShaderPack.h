@@ -9,12 +9,25 @@
 
 namespace renderdragon_shader_loader {
 
-// 光影使用的渲染路线。当前按编译产物的文件名判定：
-// 出现 *Deferred*.material.bin 视为延迟渲染，否则按前向渲染处理。
+// 光影使用的渲染路线。
+//
+// 自动判定看的是产物文件名：`compiled/` 里出现任何一个 `*Deferred*.material.bin`
+// 就按延迟渲染（灵动视效）算，否则按前向渲染（花式）算。这只是**启发式**：
+// 延迟渲染必须带 `DeferredShading*` / `DeferredIndirectSpecular` / `DeferredWater` 这些
+// 延迟 pass 的材质，前向包一般只带 `RenderChunk*` / `*ForwardPBR*` / `*Prepass*`，
+// 实测 26.40 的包都分得很干净；但名字终究只是名字，所以玩家可以在设置页里手动覆盖
+// （见 Config::graphicsModeOverride）。
 enum class ShaderRenderMode { Forward, Deferred };
 
 // 按 *.material.bin 文件名判定渲染路线；目录不存在或无产物时按前向处理。
 ShaderRenderMode detectRenderMode(std::filesystem::path const& binsDir);
+
+// 玩家在设置页里的手动覆盖：0 = 自动（用上面那个判定），1 = 强制前向，2 = 强制延迟。
+[[nodiscard]] inline ShaderRenderMode applyRenderModeOverride(ShaderRenderMode detected, int overrideMode) {
+    if (overrideMode == 1) return ShaderRenderMode::Forward;
+    if (overrideMode == 2) return ShaderRenderMode::Deferred;
+    return detected;
+}
 
 // 一个着色器包。目录结构（对标 OptiFine/Iris 的 shaderpacks 思路）：
 //

@@ -128,12 +128,19 @@ void importDroppedPaths(std::vector<std::filesystem::path> paths) {
     for (auto const& source : paths) {
         std::error_code typeEc;
         if (std::filesystem::is_regular_file(source, typeEc)) {
-            if (lowerExtension(source) != L".zip") {
+            // 光影包只认 .zip；但玩家从各种地方拖进来的往往是 .mcpack（其实就是 zip），
+            // 所以拖放导入时自动把后缀换成 .zip 再存进 shaderpacks/。
+            auto const ext = lowerExtension(source);
+            if (ext != L".zip" && ext != L".mcpack") {
                 ++skipped;
                 continue;
             }
 
-            auto const name        = source.filename();
+            auto name = source.filename();
+            if (ext == L".mcpack") {
+                name.replace_extension(L".zip");
+                logger.info("[dragdrop] {} -> {} (mcpack renamed to .zip)", source.filename().string(), name.string());
+            }
             auto const destination = root / name;
             if (std::filesystem::equivalent(source, destination, typeEc)) {
                 ++skipped;

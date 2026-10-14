@@ -21,6 +21,14 @@ float chromeBottomBarTop(float height) {
     return bottomRow1Y0 - 8.f;
 }
 
+float contentColumnWidth(float width, float preferredMax) {
+    float const capForCorners = width - cornerButtonReserve;
+    float       w             = std::min({width - 40.f, preferredMax, capForCorners});
+    // 屏幕窄到连角落按钮都摆不下时，宁可让内容列很窄，也不要把它们叠在一起。
+    if (w < 24.f) w = std::max(capForCorners, 24.f);
+    return w;
+}
+
 int Layout::hitButton(float x, float y) const {
     for (int i = 0; i < buttonCount; ++i) {
         if (buttons[i].contains(x, y)) return i;
@@ -40,8 +48,10 @@ Layout buildLayout(float width, float height) {
     if (width <= 0.f || height <= 0.f) return L;
 
     L.centerX      = std::floor(width / 2.f);
-    L.contentWidth = std::min(width - 40.f, 420.f);
-    if (L.contentWidth < 120.f) L.contentWidth = width - 20.f;
+    // 内容列要给左右两个角落按钮（左「设置」/ 右「全透明」）留出位置：
+    // 以前这里只按 `width - 40` 取宽度、窄屏还会回退到 `width - 20`，
+    // 结果标度 100%（GUI 宽度小）时底栏最右的按钮直接压在右下角按钮上。
+    L.contentWidth = contentColumnWidth(width, 420.f);
 
     float const left  = L.centerX - L.contentWidth / 2.f;
     float const right = L.centerX + L.contentWidth / 2.f;
@@ -69,6 +79,13 @@ Layout buildLayout(float width, float height) {
         width - previewSize - 10.f,
         bottomBarCenterY - previewSize / 2.f,
         width - 10.f,
+        bottomBarCenterY + previewSize / 2.f,
+    };
+    // 左下角同尺寸的「设置」按钮（镜像 previewButton）：底栏左侧的模组设置入口。
+    L.settingsButton = {
+        10.f,
+        bottomBarCenterY - previewSize / 2.f,
+        10.f + previewSize,
         bottomBarCenterY + previewSize / 2.f,
     };
 

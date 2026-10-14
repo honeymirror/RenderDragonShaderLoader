@@ -50,6 +50,7 @@ float controlWidth(SettingItem const& item, float boxW) {
     case SettingKind::Enum:   return std::min(boxW * 0.48f, 130.f);
     case SettingKind::Color:  return std::min(boxW * 0.24f, 44.f);
     case SettingKind::Slider: return std::min(boxW * 0.30f, 64.f);
+    case SettingKind::KeyBind: return std::min(boxW * 0.30f, 60.f);
     default:                  return boxW * 0.5f;
     }
 }
@@ -283,8 +284,9 @@ SettingsLayout buildSettingsLayout(float width, float height, SettingsModel cons
     if (width <= 0.f || height <= 0.f) return L;
 
     // 全部取整：边框和文字落在整数像素上才不糊，左右两格也才是完全一样的尺寸。
-    float const contentW = std::floor((width - 40.f >= 160.f) ? std::min(width - 40.f, contentMaxW)
-                                                             : (width - 20.f));
+    // 和列表页共用同一条列宽规则：整体让开左右两个角落按钮（左下「设置」/ 右下「全透明」），
+    // 否则 GUI 宽度小的时候参数行会压到角落按钮上。
+    float const contentW = std::floor(contentColumnWidth(width, contentMaxW));
     float const centerX  = std::floor(width / 2.f);
     float const left     = std::floor(centerX - contentW / 2.f);
     float const right    = left + contentW;
@@ -560,6 +562,7 @@ void settingsAdjust(SettingsModel& model, int index, int delta) {
         break;
     }
     case SettingKind::Category:
+    case SettingKind::KeyBind: // 键位只能「回车/点击」录，方向键不动它
         break;
     }
 }
@@ -584,6 +587,7 @@ void settingsResetDefaults(SettingsModel& model) {
         case SettingKind::Bool:
         case SettingKind::Enum:
         case SettingKind::Color:
+        case SettingKind::KeyBind:
             if (!item.defValue.empty()) item.value = item.defValue;
             break;
         case SettingKind::Category:

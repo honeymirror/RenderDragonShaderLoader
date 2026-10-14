@@ -91,5 +91,21 @@
     "Tonemap Exposure": "Tonemap Exposure",
     "White Balance": "White Balance",
     "Color Temperature": "Color Temperature",
-    "Gamma": "Gamma"
+    "Gamma": "Gamma",
+    "Settings": "Settings",
+    "Panel hotkey": "Panel hotkey",
+    "Force vibrant visuals": "Force vibrant visuals",
+    "Auto-load last shader pack": "Auto-load last shader pack",
+    "Graphics mode override": "Graphics mode override",
+    "Auto": "Auto",
+    "Fancy (Forward)": "Fancy (Forward)",
+    "Vibrant Visuals (Deferred)": "Vibrant Visuals (Deferred)",
+    "Press a key...": "Press a key...",
+    "NONE": "NONE",
+    "Key binding cancelled": "Key binding cancelled",
+    "That key cannot be used": "That key cannot be used",
+    "Unsupported key": "Unsupported key",
+    "press Apply to save": "press Apply to save",
+    "Settings saved": "Settings saved",
+    "Some settings could not be saved": "Some settings could not be saved"
 }

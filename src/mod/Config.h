@@ -10,8 +10,9 @@ namespace renderdragon_shader_loader {
 struct Config {
     // 注意：新增/改名任何字段都要把这个版本号 +1。否则旧 config.json 会缺少新字段，
     // 反序列化会直接抛错（表现为"模组加载失败"）。
-    // 版本 5：新增 uiKey（面板热键名）。
-    int version = 5;
+    // 版本 6：新增 forceVibrantVisuals / graphicsModeOverride / autoLoadLastShader /
+    //          lastShaderPack / lastShaderEnabled。
+    int version = 6;
     bool enabled = true;
 
     // --- 目录（相对于模组目录 getModDir()）---
@@ -38,6 +39,22 @@ struct Config {
     // 打开/关闭面板的热键。可以是 A-Z / 0-9 / F1-F12 / 名字（SPACE、TAB、UP…），
     // 或 "NONE" 表示不绑热键。用 `/shader key <名字>` 改。
     std::string uiKey = "G";
+
+    // --- 游戏兼容 / 行为开关 ---
+    // 强制开启「灵动视效」（Vibrant Visuals）：有些服务器会让客户端把图形模式锁在花式，
+    // 钩住游戏的判定函数直接置位（BetterRenderDragon 同款做法）。默认开。
+    bool forceVibrantVisuals = true;
+
+    // 渲染路线的玩家覆盖：0 = 自动（按产物文件名判定），1 = 强制花式（前向），
+    // 2 = 强制灵动视效（延迟）。自动判定只是启发式，名字对不上时用这个兜底。
+    int graphicsModeOverride = 0;
+
+    // 启动时自动加载上次用的光影（原版材质 -> 上次的包，不用每次手动点开面板）。
+    bool autoLoadLastShader = true;
+
+    // 上次「应用 / 完成」时真正生效的光影：包名（空 = 没用光影）与是否开着。
+    std::string lastShaderPack    = "";
+    bool        lastShaderEnabled = false;
 };
 
 } // namespace renderdragon_shader_loader

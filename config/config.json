@@ -1,5 +1,5 @@
 {
-    "version": 5,
+    "version": 6,
     "enabled": true,
     "dataDir": "data",
     "shaderPacksDir": "shaderpacks",
@@ -9,5 +9,10 @@
     "shadercPath": "",
     "skipValidation": true,
     "uiBackdrop": 0.0,
-    "uiKey": "G"
+    "uiKey": "G",
+    "forceVibrantVisuals": true,
+    "graphicsModeOverride": 0,
+    "autoLoadLastShader": true,
+    "lastShaderPack": "",
+    "lastShaderEnabled": false
 }

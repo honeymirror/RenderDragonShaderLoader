@@ -91,5 +91,21 @@
     "Tonemap Exposure": "映射曝光",
     "White Balance": "白平衡",
     "Color Temperature": "色温",
-    "Gamma": "伽马"
+    "Gamma": "伽马",
+    "Settings": "设置",
+    "Panel hotkey": "面板热键",
+    "Force vibrant visuals": "强制开启灵动视效",
+    "Auto-load last shader pack": "启动时自动加载上次光影",
+    "Graphics mode override": "图形模式覆盖",
+    "Auto": "自动",
+    "Fancy (Forward)": "花式（前向）",
+    "Vibrant Visuals (Deferred)": "灵动视效（延迟）",
+    "Press a key...": "请按一个键...",
+    "NONE": "无",
+    "Key binding cancelled": "已取消设置键位",
+    "That key cannot be used": "这个键不能用作面板热键",
+    "Unsupported key": "不支持这个键",
+    "press Apply to save": "按「应用」保存",
+    "Settings saved": "设置已保存",
+    "Some settings could not be saved": "部分设置保存失败"
 }

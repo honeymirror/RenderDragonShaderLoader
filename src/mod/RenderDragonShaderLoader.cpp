@@ -24,13 +24,18 @@
 #include "ll/api/thread/ClientThreadExecutor.h"
 
 #include "core/GraphicsModeController.h"
+#include "core/Hotkey.h"
 #include "core/ShaderPack.h"
+#include "core/VibrantVisuals.h"
 #include "hook/DragDropHooks.h"
 #include "hook/MaterialHooks.h"
 #include "ui/ShaderManagerScreen.h"
 
 #include "mc/client/game/ClientInstance.h"
 #include "mc/client/gui/GuiData.h"
+#include "mc/client/gui/screens/AbstractScene.h"
+#include "mc/client/gui/screens/interfaces/ISceneStack.h"
+#include "mc/client/input/KeyboardManager.h"
 #include "mc/deps/input/MouseAction.h"
 #include "mc/server/commands/CommandOrigin.h"
 #include "mc/server/commands/CommandOutput.h"
@@ -45,93 +50,60 @@ struct KeyParams {
     std::string key;
 };
 
+// 命令参数结构体必须有外部链接（boost::pfr 反射需要），不能放进匿名命名空间。
+struct ToggleParams {
+    std::string state;
+};
+
 namespace {
 Config config;
 
 // 面板热键：0 = 没绑。
 int gHotkeyVk = 0;
 
-// 把配置里的热键名解析成 Windows 虚拟键码。
-// 返回 VK 码；0 = 显式不绑（NONE/OFF/-）；-1 = 名字不认识。
-int parseHotkey(std::string const& raw) {
-    std::string s;
-    for (char ch : raw) {
-        if (!std::isspace((unsigned char)ch)) s.push_back((char)std::toupper((unsigned char)ch));
-    }
-    if (s.empty() || s == "NONE" || s == "OFF" || s == "-" || s == "DISABLED") return 0;
+// 热键名 <-> 虚拟键码的映射在 core/Hotkey.{h,cpp}（界面设置页也要用同一张表）。
+void refreshHotkey() { gHotkeyVk = std::max(hotkeyVkFromName(config.uiKey), 0); }
 
-    if (s.size() == 1) {
-        char const c = s[0];
-        if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) return c; // VK_A..Z / VK_0..9 就是字符本身
-        switch (c) {
-        case '`':
-        case '~': return VK_OEM_3;
-        case '-': return VK_OEM_MINUS;
-        case '=': return VK_OEM_PLUS;
-        case '[': return VK_OEM_4;
-        case ']': return VK_OEM_6;
-        case ';': return VK_OEM_1;
-        case '\'': return VK_OEM_7;
-        case ',': return VK_OEM_COMMA;
-        case '.': return VK_OEM_PERIOD;
-        case '/': return VK_OEM_2;
-        case '\\': return VK_OEM_5;
-        default: return -1;
-        }
+// 数一个目录里有多少 *.material.bin。
+std::size_t countMaterialBins(std::filesystem::path const& dir) {
+    std::error_code ec;
+    std::size_t     count = 0;
+    for (auto const& entry : std::filesystem::directory_iterator(dir, ec)) {
+        if (entry.is_regular_file(ec) && entry.path().filename().string().ends_with(".material.bin")) ++count;
     }
-
-    if (s.size() >= 2 && s[0] == 'F') {
-        int  n        = 0;
-        bool allDigit = true;
-        for (std::size_t i = 1; i < s.size(); ++i) {
-            if (s[i] < '0' || s[i] > '9') {
-                allDigit = false;
-                break;
-            }
-            n = n * 10 + (s[i] - '0');
-        }
-        if (allDigit && n >= 1 && n <= 24) return VK_F1 + (n - 1);
-    }
-
-    struct Named {
-        char const* name;
-        int         vk;
-    };
-    static constexpr Named named[] = {
-        {"SPACE", VK_SPACE},       {"TAB", VK_TAB},
-        {"ENTER", VK_RETURN},      {"RETURN", VK_RETURN},
-        {"ESC", VK_ESCAPE},        {"ESCAPE", VK_ESCAPE},
-        {"BACKSPACE", VK_BACK},    {"INSERT", VK_INSERT},
-        {"DELETE", VK_DELETE},     {"DEL", VK_DELETE},
-        {"HOME", VK_HOME},         {"END", VK_END},
-        {"PGUP", VK_PRIOR},        {"PAGEUP", VK_PRIOR},
-        {"PGDN", VK_NEXT},         {"PAGEDOWN", VK_NEXT},
-        {"UP", VK_UP},             {"DOWN", VK_DOWN},
-        {"LEFT", VK_LEFT},         {"RIGHT", VK_RIGHT},
-        {"SHIFT", VK_SHIFT},       {"CTRL", VK_CONTROL},
-        {"ALT", VK_MENU},          {"CAPSLOCK", VK_CAPITAL},
-        {"NUMPAD0", VK_NUMPAD0},   {"NUMPAD1", VK_NUMPAD1},
-        {"NUMPAD2", VK_NUMPAD2},   {"NUMPAD3", VK_NUMPAD3},
-        {"NUMPAD4", VK_NUMPAD4},   {"NUMPAD5", VK_NUMPAD5},
-        {"NUMPAD6", VK_NUMPAD6},   {"NUMPAD7", VK_NUMPAD7},
-        {"NUMPAD8", VK_NUMPAD8},   {"NUMPAD9", VK_NUMPAD9},
-    };
-    for (auto const& entry : named) {
-        if (s == entry.name) return entry.vk;
-    }
-    return -1;
+    return count;
 }
 
-// 把配置里的名字规范化后存回去（字母转大写、去空白）。
-std::string normalizeHotkeyName(std::string const& raw) {
-    std::string s;
-    for (char ch : raw) {
-        if (!std::isspace((unsigned char)ch)) s.push_back((char)std::toupper((unsigned char)ch));
-    }
-    return s;
-}
+// 游戏此刻是不是"正在打字"。这些情况下面板热键必须让路：那个键本来该打进输入框，
+// 既不能顺手把面板弹出来，也不能被我们 cancel 掉（否则玩家会打不出这个字符）。
+//   ① 文本框已经拿到键盘（触屏/手柄的软键盘，以及部分平台的文本编辑）；
+//   ② 顶层屏幕是聊天栏 / 告示牌 / 铁砧改名 / 书 / 命令方块这些要打字的界面
+//      （游戏的屏幕名形如 `chat.chat_screen`、`sign.sign_screen` …）。
+bool isGameTyping() {
+    auto client = ll::service::getClientInstance();
+    if (!client) return false;
 
-void refreshHotkey() { gHotkeyVk = std::max(parseHotkey(config.uiKey), 0); }
+    auto& keyboard = client->getKeyboardManager();
+    if (keyboard.isKeyboardActive() || keyboard.isKeyboardEnabled()) return true;
+
+    auto         sceneStack = client->getCurrentSceneStack();
+    ISceneStack* stack      = sceneStack.operator->();
+    if (stack == nullptr) return false;
+    auto* scene = stack->getTopScene();
+    if (scene == nullptr) return false;
+
+    static constexpr std::string_view kTypingScreens[] = {
+        "chat_screen",
+        "sign_screen",
+        "anvil_screen",
+        "book_screen",
+        "command_block_screen",
+    };
+    for (auto const needle : kTypingScreens) {
+        if (scene->containsScreenNameSubstring(needle)) return true;
+    }
+    return false;
+}
 
 } // namespace
 
@@ -164,6 +136,73 @@ void RenderDragonShaderLoader::rescan() {
     }
 }
 
+Config const& RenderDragonShaderLoader::getConfig() const { return config; }
+
+bool RenderDragonShaderLoader::updateConfig(std::function<void(Config&)> const& mutate) {
+    if (mutate) mutate(config);
+    auto const configPath = getSelf().getConfigDir() / "config.json";
+    if (!ll::config::saveConfig(config, configPath)) {
+        getSelf().getLogger().error("Cannot save config to {}", configPath);
+        return false;
+    }
+    return true;
+}
+
+void RenderDragonShaderLoader::rememberShaderSelection(std::string const& packName, bool enabled) {
+    if (config.lastShaderPack == packName && config.lastShaderEnabled == enabled) return;
+    updateConfig([&](Config& cfg) {
+        cfg.lastShaderPack    = packName;
+        cfg.lastShaderEnabled = enabled;
+    });
+    getSelf().getLogger().info(
+        "Remembered shader selection: pack='{}' enabled={}",
+        packName.empty() ? "(vanilla)" : packName,
+        enabled
+    );
+}
+
+bool RenderDragonShaderLoader::setPanelHotkey(std::string const& name) {
+    if (hotkeyVkFromName(name) < 0) return false;
+    if (!updateConfig([&](Config& cfg) { cfg.uiKey = normalizeHotkeyName(name); })) return false;
+    refreshHotkey();
+    getSelf().getLogger().info("Panel hotkey set to '{}' (vk={})", config.uiKey, gHotkeyVk);
+    return true;
+}
+
+// 启动时把上次用的光影挂回去（用户要求：重启游戏后不用手动再点一遍）。
+// 只认"上次退出时真的开着、包还在、也有编译产物"这三种条件同时成立的情况。
+void RenderDragonShaderLoader::restoreLastShaderOnStart() {
+    auto& logger = getSelf().getLogger();
+    if (!config.autoLoadLastShader) {
+        logger.info("Auto-load last shader pack is disabled");
+        return;
+    }
+    if (!config.lastShaderEnabled || config.lastShaderPack.empty()) {
+        logger.info("No last shader pack to restore; starting with vanilla materials");
+        return;
+    }
+
+    auto const* pack = ShaderPackStore::getInstance().find(config.lastShaderPack);
+    if (pack == nullptr) {
+        logger.warn("Last shader pack '{}' is no longer installed", config.lastShaderPack);
+        return;
+    }
+    if (countMaterialBins(pack->binsDir) == 0) {
+        logger.warn("Last shader pack '{}' has no compiled output; not restoring", config.lastShaderPack);
+        return;
+    }
+
+    auto const mode = applyRenderModeOverride(pack->renderMode, config.graphicsModeOverride);
+    auto const dir  = pack->binsDir;
+    auto const name = pack->name;
+    ll::thread::ClientThreadExecutor::getDefault().execute([dir, mode, name] {
+        GraphicsModeController::applyForRenderMode(mode);
+        MaterialHooks::getInstance().queueReload(dir);
+        ll::mod::NativeMod::current()->getLogger().info("Restored last shader pack '{}'", name);
+    });
+    ShaderManagerScreen::getInstance().setAppliedShaderPack(config.lastShaderPack, true);
+}
+
 bool RenderDragonShaderLoader::load() {
     auto& logger = getSelf().getLogger();
     logger.info("RenderDragonShaderLoader loading...");
@@ -176,13 +215,20 @@ bool RenderDragonShaderLoader::load() {
         }
     }
     // 面板热键：默认 G。名字不认识时退回默认值（不会让玩家把面板锁死在外面）。
-    if (parseHotkey(config.uiKey) < 0) {
+    if (hotkeyVkFromName(config.uiKey) < 0) {
         logger.warn("Unknown uiKey '{}'; falling back to G", config.uiKey);
         config.uiKey = "G";
         ll::config::saveConfig(config, configPath);
     }
     refreshHotkey();
     logger.info("UI hotkey: {} (vk={})", config.uiKey, gHotkeyVk);
+    logger.info(
+        "forceVibrantVisuals={} graphicsModeOverride={} autoLoadLastShader={} last='{}'",
+        config.forceVibrantVisuals,
+        config.graphicsModeOverride,
+        config.autoLoadLastShader,
+        config.lastShaderPack
+    );
 
     // 语言文件：<modDir>/lang/{zh_CN,en_US}.json
     if (auto res = ll::i18n::getInstance().load(getSelf().getLangDir()); !res) {
@@ -200,9 +246,9 @@ bool RenderDragonShaderLoader::load() {
 
     rescan();
 
-    // 注意：这里**故意不自动挂载**任何光影包。默认状态是"光影：已禁用"（原版材质），
-    // 由玩家打开面板后自己选一个包再点「应用/完成」才挂上（对齐 Iris 的初始态）。
-    // 早先这里会把第一个有 .bin 的包直接 setOverrideDir 挂上去，和"默认不开"是冲突的。
+    // 默认状态是"光影：已禁用"（原版材质），玩家选包后「应用/完成」才会挂上（对齐 Iris）。
+    // 例外：配置里记着"上次退出时开着某个包"而且它还装着产物，就在 enable() 里自动挂回去
+    // （见 restoreLastShaderOnStart）—— 第一次安装的人配置是空的，仍然从原版材质开始。
     logger.info(
         "shaders start disabled; open the panel ({} / `/shader ui`) to pick a pack",
         config.uiKey.empty() ? "no hotkey" : config.uiKey
@@ -224,10 +270,19 @@ bool RenderDragonShaderLoader::enable() {
 
     // 占位屏幕生命周期 hook：只接管它那一趟 UI pass，不再碰 user32 光标和全局绘制函数。
     installNativeUiSuppressHooks();
-    // 让游戏窗口接受外部拖入的 *.zip / 已解压光影包目录。
+    // 让游戏窗口接受外部拖入的 *.zip / *.mcpack / 已解压光影包目录。
     installDragDropHook();
     // 卡死诊断看门狗（独立线程，渲染回调停摆 5 秒写 data/ui-hang.log）。
     startHangWatchdog();
+
+    // 强制开启「灵动视效」：有些服务器会把图形模式的判定锁死，这里照 BRD 的做法
+    // 钩住判定函数直接置位。关掉的话立刻回到原逻辑。
+    if (installVibrantVisualsHook()) {
+        setForceVibrantVisuals(config.forceVibrantVisuals);
+        logger.info("Force vibrant visuals: {}", config.forceVibrantVisuals);
+    } else {
+        logger.warn("Force vibrant visuals unavailable: {}", vibrantVisualsLastError());
+    }
 
     // 界面背景压暗档位（0 = 透明看得见世界，1 = 全遮住）。
     ShaderManagerScreen::getInstance().setBackdrop((float)config.uiBackdrop);
@@ -280,7 +335,11 @@ bool RenderDragonShaderLoader::enable() {
         int const  key    = event.keyCode();
         bool const down   = event.isDown();
 
-        if (gHotkeyVk != 0 && key == gHotkeyVk) { // 只在按下沿切换，键盘自动重复不再触发。
+        // 设置页正在"录键位"时，即使按的是当前热键也要交给界面处理，不能在这里开/关面板。
+        if (gHotkeyVk != 0 && key == gHotkeyVk && !screen.capturingKey()) {
+            // 正在打字（聊天栏、告示牌、铁砧…）：这个键要让给输入框 —— 不开面板，也不吞事件。
+            if (!screen.visible() && isGameTyping()) return;
+            // 只在按下沿切换，键盘自动重复不再触发。
             static bool hotkeyHeld = false;
             if (down && !hotkeyHeld) {
                 if (screen.visible()) screen.close();
@@ -329,22 +388,48 @@ bool RenderDragonShaderLoader::enable() {
 
             handle.overload<KeyParams>().text("key").required("key").execute(
                 [](CommandOrigin const&, CommandOutput& output, KeyParams const& params) {
-                    if (parseHotkey(params.key) < 0) {
+                    if (hotkeyVkFromName(params.key) < 0) {
                         output.error(
                             "Unknown key '{}'. Use A-Z, 0-9, F1-F12, a name like SPACE/TAB/UP, or NONE",
                             params.key
                         );
                         return;
                     }
-                    config.uiKey = normalizeHotkeyName(params.key);
-                    refreshHotkey();
-                    auto const path = RenderDragonShaderLoader::getInstance().getSelf().getConfigDir() / "config.json";
-                    if (!ll::config::saveConfig(config, path)) {
-                        output.error("Failed to save config: {}", path.string());
+                    if (!RenderDragonShaderLoader::getInstance().setPanelHotkey(params.key)) {
+                        output.error("Failed to save config");
                         return;
                     }
                     if (gHotkeyVk == 0) output.success("Panel hotkey disabled (use /shader ui to open)");
                     else output.success("Panel hotkey set to {}", config.uiKey);
+                }
+            );
+
+            // 强制开启「灵动视效」的开关（有些服务器会把图形模式锁死）。
+            // `/shader vibrant` 看状态，`/shader vibrant on|off` 改并立刻生效。
+            handle.overload().text("vibrant").execute([](CommandOrigin const&, CommandOutput& output) {
+                output.success(
+                    "Force vibrant visuals: {} (hook available: {}, use /shader vibrant on|off)",
+                    forceVibrantVisuals() ? "on" : "off",
+                    vibrantVisualsHookAvailable() ? "yes" : "no"
+                );
+            });
+
+            handle.overload<ToggleParams>().text("vibrant").required("state").execute(
+                [](CommandOrigin const&, CommandOutput& output, ToggleParams const& params) {
+                    auto const state = normalizeHotkeyName(params.state); // 复用：去空白 + 大写
+                    if (state != "ON" && state != "OFF" && state != "TRUE" && state != "FALSE") {
+                        output.error("Usage: /shader vibrant <on|off>");
+                        return;
+                    }
+                    bool const enabled = (state == "ON" || state == "TRUE");
+                    if (!RenderDragonShaderLoader::getInstance().updateConfig(
+                            [&](Config& cfg) { cfg.forceVibrantVisuals = enabled; }
+                        )) {
+                        output.error("Failed to save config");
+                        return;
+                    }
+                    setForceVibrantVisuals(enabled);
+                    output.success("Force vibrant visuals: {}", enabled ? "on" : "off");
                 }
             );
 
@@ -369,11 +454,15 @@ bool RenderDragonShaderLoader::enable() {
                     GraphicsModeController::applyForward();
                     MaterialHooks::getInstance().restoreVanilla();
                 });
+                RenderDragonShaderLoader::getInstance().rememberShaderSelection("", false);
                 output.success("Rolling back to vanilla materials (redirect disabled)");
             });
 
         }
     );
+
+    // 上次退出时开着的光影：这里挂回去（必须在 MaterialHooks 装好、监听器注册完之后）。
+    restoreLastShaderOnStart();
 
     return true;
 }
@@ -382,6 +471,7 @@ bool RenderDragonShaderLoader::disable() {
     stopHangWatchdog();
     uninstallDragDropHook();
     uninstallNativeUiSuppressHooks();
+    uninstallVibrantVisualsHook();
     MaterialHooks::getInstance().uninstall();
     getSelf().getLogger().info("RenderDragonShaderLoader disabled");
     return true;

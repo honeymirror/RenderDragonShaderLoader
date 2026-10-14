@@ -1,5 +1,7 @@
 #include "ui/UiScreen.h"
 
+#include "core/Hotkey.h"
+
 #include <algorithm>
 #include <cctype>
 #include <chrono>
@@ -200,9 +202,7 @@ void Screen::click() const {
     if (mHost.playClick) mHost.playClick();
 }
 
-// 这个版本还没有编译链路（只加载光影包自带的 .material.bin），所以界面永远不会被"编译中"锁住。
-// 保留这个开关：以后接上编译服务时，让它返回"是否正在编译"即可，所有输入路径都已经走它。
-bool Screen::blocked() const { return false; }
+bool Screen::blocked() const { return mHost.compiling && mHost.compiling(); }
 
 void Screen::setPointer(float x, float y) {
     if (x >= 0.f && y >= 0.f) {
@@ -237,7 +237,9 @@ void Screen::open() {
     mMode        = Mode::List;
     mRow         = mPack >= 0 ? mPack + 1 : 0; // 第 0 项是总开关
     mListFirst   = 0;                          // 列表从头开始滚
-    mButtonFocus = -1;
+    mFocus       = Focus::Content;
+    mFocusIndex  = 0;
+    mKeyCapture  = false;
     mListScrollDragging    = false;
     mSettingScrollDragging = false;
     mPending     = Pending::None;
@@ -269,9 +271,34 @@ void Screen::refreshPacks() {
     }
 }
 
+// 宿主启动时按配置自动恢复了上次的光影，要把这份"已生效"的状态同步进界面，
+// 否则面板会显示成"光影：已禁用"、玩家再点一次又会重复加载。
+void Screen::setAppliedShaderPack(std::string const& packName, bool enabled) {
+    auto const& packs = ShaderPackStore::getInstance().packs();
+    mEnabled          = enabled;
+    mEnabledApplied   = enabled;
+    mAppliedPack      = -1;
+    if (!packName.empty()) {
+        for (std::size_t i = 0; i < packs.size(); ++i) {
+            if (packs[i].name == packName) {
+                mAppliedPack = (int)i;
+                break;
+            }
+        }
+    }
+    if (mAppliedPack >= 0) {
+        mPack = mAppliedPack;
+        if (mMode == Mode::List) mRow = mPack + 1;
+    }
+    snapshotParameters();
+}
+
 void Screen::close() {
     mVisible = false;
     mPending = Pending::None;
+    // 关面板时一定要退出"录键位"状态：否则宿主的热键监听会一直以为界面在等按键，
+    // 面板热键就再也打不开面板了（只能靠 /shader ui）。
+    mKeyCapture = false;
     if (mHost.closeScreen) mHost.closeScreen();
 }
 
@@ -281,6 +308,7 @@ void Screen::dismiss() {
     discardPending(false);
     mVisible = false;
     mPending = Pending::None;
+    mKeyCapture = false;
 }
 
 // ---------------------------------------------------------------- 绘制
@@ -311,9 +339,10 @@ void Screen::notice(std::string text, bool failed) {
     log("[ui] notice: " + mNotice);
 }
 
-// 状态行：显示界面自己的提示（notice），3 秒后淡出。
+// 状态行：优先显示界面自己的提示，没有才回落到宿主（编译服务）的状态。
 std::string Screen::effectiveStatus() const {
-    return mNotice;
+    if (!mNotice.empty()) return mNotice;
+    return mHost.statusMessage ? mHost.statusMessage() : std::string{};
 }
 
 // 淡出曲线：0~3 秒不透明 → 3~4 秒线性淡出 → 4 秒后完全消失。
@@ -326,7 +355,7 @@ float Screen::statusAlpha(std::string const& message) const {
     return 1.f - (age - 3.f);
 }
 
-// 文字变了就重新开始计时。
+// 文字变了就重新开始计时（宿主那边改了编译状态也会走这里）。
 void Screen::trackStatus(std::string const& message) {
     if (message == mStatusShown) return;
     mStatusShown   = message;
@@ -337,7 +366,8 @@ void Screen::drawStatusLine(Canvas& canvas, float width, float y) const {
     std::string const message = effectiveStatus();
     float const       alpha   = statusAlpha(message);
     if (message.empty() || alpha <= 0.02f) return;
-    Color      color  = mNoticeFailed ? failColor : accentColor;
+    bool const failed = mNotice.empty() ? (mHost.statusFailed && mHost.statusFailed()) : mNoticeFailed;
+    Color      color  = failed ? failColor : accentColor;
     color.a           = alpha;
     canvas.text(0.f, y, width, message, color, Align::Center, 1.f);
 }
@@ -355,7 +385,7 @@ void Screen::drawContentBackdrop(Canvas& canvas, float width) {
 void Screen::drawButton(Canvas& canvas, Rect const& r, std::string const& value, int index) {
     if (!r.valid()) return;
     bool hovered = r.contains(mMouseX, mMouseY);
-    bool focused = mButtonFocus == index; // 键盘焦点
+    bool focused = bottomFocused(index); // 键盘焦点
     bool active  = hovered || focused;
 
     float width  = r.x1 - r.x0;
@@ -374,12 +404,13 @@ void Screen::drawPreviewButton(Canvas& canvas) {
     if (!r.valid()) return;
 
     bool const hovered = r.contains(mMouseX, mMouseY);
+    bool const focused = (mFocus == Focus::Preview && !mTransparentPreview);
     float const w      = r.x1 - r.x0;
     float const h      = r.y1 - r.y0;
 
     // 和底栏按钮同风格：常态内部透明、灰框白图标；悬停时白框 + 淡白填充。
-    if (hovered) canvas.fill(r.x0, r.y0, w, h, buttonFillActive, 0.26f);
-    strokeRect(canvas, r, hovered ? buttonBorderActive : buttonBorder, 0.9f);
+    if (hovered || focused) canvas.fill(r.x0, r.y0, w, h, buttonFillActive, 0.26f);
+    strokeRect(canvas, r, (hovered || focused) ? buttonBorderActive : buttonBorder, 0.9f);
 
     float const lineX0  = r.x0 + 6.f;
     float const lineX1  = r.x1 - 6.f;
@@ -402,6 +433,36 @@ void Screen::drawPreviewButton(Canvas& canvas) {
         diagonal(r.x0 + 4.f, r.y0 + 4.f, r.x1 - 4.f, r.y1 - 4.f);
         diagonal(r.x1 - 4.f, r.y0 + 4.f, r.x0 + 4.f, r.y1 - 4.f);
     }
+}
+
+// 左下角「设置」按钮：底栏左侧的模组设置入口（面板热键 / 强制灵动视效 / 自动加载）。
+// 图标用色块拼一个齿轮：外圈四颗齿 + 中间镂空，不依赖字体里的符号。
+void Screen::drawSettingsButton(Canvas& canvas) {
+    Rect const& r = mLayout.settingsButton;
+    if (!r.valid()) return;
+
+    bool const  hovered = r.contains(mMouseX, mMouseY);
+    bool const  focused = (mFocus == Focus::SettingsButton);
+    float const w       = r.x1 - r.x0;
+    float const h       = r.y1 - r.y0;
+    Color const icon    = (hovered || focused) ? buttonBorderActive : buttonBorder;
+
+    if (hovered || focused) canvas.fill(r.x0, r.y0, w, h, buttonFillActive, 0.26f);
+    strokeRect(canvas, r, (hovered || focused) ? buttonBorderActive : buttonBorder, 0.9f);
+
+    float const cx = (r.x0 + r.x1) / 2.f;
+    float const cy = (r.y0 + r.y1) / 2.f;
+    // 环（8 个 3x3 的小方块围成） + 上下左右四颗齿。
+    for (float dx : {-6.f, 0.f, 6.f}) {
+        for (float dy : {-6.f, 0.f, 6.f}) {
+            if (dx == 0.f && dy == 0.f) continue;
+            canvas.fill(cx + dx - 1.5f, cy + dy - 1.5f, 3.f, 3.f, icon, 1.f);
+        }
+    }
+    canvas.fill(cx - 1.f, cy - 8.5f, 2.f, 3.f, icon, 1.f);
+    canvas.fill(cx - 1.f, cy + 5.5f, 2.f, 3.f, icon, 1.f);
+    canvas.fill(cx - 8.5f, cy - 1.f, 3.f, 2.f, icon, 1.f);
+    canvas.fill(cx + 5.5f, cy - 1.f, 3.f, 2.f, icon, 1.f);
 }
 
 // Iris 风格右侧滚动条：贴屏幕最右缘（"中间那栏的最右边"），暗色轨道 + 浅灰滑块。
@@ -521,11 +582,11 @@ void Screen::drawSettings(Canvas& canvas, float width, float height) {
         canvas.text(r.x0, textTopIn(r.y0, h), w, value, textColor, Align::Center, 1.f);
     };
 
-    smallButton(S.headerBack, "< " + tr("Back"), mHeaderFocus == 0 || S.headerBack.contains(mMouseX, mMouseY));
-    {
+    smallButton(S.headerBack, "< " + tr("Back"), headerFocused(0) || S.headerBack.contains(mMouseX, mMouseY));
+    if (mMode == Mode::Settings) {
         std::string const headerKeys[3] = {"Import", "Export", "Reset"};
         for (int i = 0; i < S.headerCount; ++i) {
-            bool const active = mHeaderFocus == i + 1 || S.header[i].contains(mMouseX, mMouseY);
+            bool const active = headerFocused(i + 1) || S.header[i].contains(mMouseX, mMouseY);
             smallButton(S.header[i], tr(headerKeys[i]), active);
         }
     }
@@ -627,6 +688,22 @@ void Screen::drawSettings(Canvas& canvas, float width, float height) {
                             innerH - 2.f * sliderThumbInsetY, false);
             break;
         }
+        case SettingKind::KeyBind: {
+            // 热键行：值框里显示键名；正在等玩家按键时显示提示。
+            strokeRect(canvas, inner, active ? buttonBorderActive : innerBorderColor, 0.95f);
+            std::string text = item.value.empty() ? tr("NONE") : item.value;
+            if (mKeyCapture && box.index == mSettingIndex) text = tr("Press a key...");
+            canvas.text(
+                inner.x0,
+                textTopIn(inner.y0, innerH),
+                innerW,
+                text,
+                (mKeyCapture && box.index == mSettingIndex) ? selectColor : valueColor,
+                Align::Center,
+                1.f
+            );
+            break;
+        }
         default:
             break;
         }
@@ -674,7 +751,8 @@ void Screen::drawSettings(Canvas& canvas, float width, float height) {
         std::string const message = effectiveStatus();
         float const       alpha   = statusAlpha(message);
         if (!message.empty() && alpha > 0.02f) {
-            Color      color  = mNoticeFailed ? failColor : accentColor;
+            bool const failed = mNotice.empty() ? (mHost.statusFailed && mHost.statusFailed()) : mNoticeFailed;
+            Color      color  = failed ? failColor : accentColor;
             color.a           = alpha;
             Rect const bar{S.viewport.x0, S.viewport.y1 - 15.f, S.viewport.x1, S.viewport.y1};
             canvas.text(bar.x0, textTopIn(bar.y0, 15.f), bar.x1 - bar.x0, message, color, Align::Center, 1.f);
@@ -702,9 +780,11 @@ void Screen::render(Canvas& canvas, float width, float height) {
 
     // 设置页版式：每帧重建。先用"没有悬停"的版式定位鼠标下的项（格子几何和悬停无关），
     // 再带上悬停项重建 —— 滑块只要鼠标移上去就展开、一移开立刻复原。
-    if (mMode == Mode::Settings) {
-        // -1 = 顶层分类页（按钮网格）；-2 = 包没有分类时的"整页参数"；>=0 = 某个分类页。
-        SettingPageStyle const style = (mSettingsPage == -1) ? SettingPageStyle::ButtonGrid : SettingPageStyle::Rows;
+    if (mMode == Mode::Settings || mMode == Mode::Preferences) {
+        // -2 / 模组设置页 = 整页参数行；-1 = 分类按钮网格；>= 0 = 某一层的参数行。
+        SettingPageStyle const style = (mSettingsPage <= -2 || mMode == Mode::Preferences)
+            ? SettingPageStyle::Rows
+            : (mSettingsPage == -1 ? SettingPageStyle::ButtonGrid : SettingPageStyle::Rows);
         mSettingsLayout = buildSettingsLayout(width, height, mSettings, mSettingsView, style, -1, mSettingScroll);
         mSettingScroll  = mSettingsLayout.scroll;
         mSettingsHover  = settingsHitTest(mSettingsLayout, mMouseX, mMouseY);
@@ -724,6 +804,24 @@ void Screen::render(Canvas& canvas, float width, float height) {
         return;
     }
 
+    // 编译中：锁住一切操作，只显示进度。
+    if (blocked()) {
+        drawHeader(canvas, width, headerTextY, tr("Shader Packs"), tr("Compiling..."));
+        canvas.text(0.f, height / 2.f - 7.f, width, tr("Compiling..."), selectColor, Align::Center, 1.f);
+        canvas.text(
+            0.f,
+            height / 2.f + 9.f,
+            width,
+            mHost.statusMessage ? mHost.statusMessage() : std::string{},
+            dimColor,
+            Align::Center,
+            1.f
+        );
+        drawPreviewButton(canvas);
+        canvas.flush();
+        return;
+    }
+
     // 编译结束：执行「完成」排队的动作。
     if (mPending == Pending::BackToList) {
         mPending = Pending::None;
@@ -738,11 +836,13 @@ void Screen::render(Canvas& canvas, float width, float height) {
         drawList(canvas, width);
         break;
     case Mode::Settings:
+    case Mode::Preferences:
         drawSettings(canvas, width, height);
         break;
     }
 
     drawPreviewButton(canvas);
+    drawSettingsButton(canvas);
     canvas.flush();
 }
 
@@ -861,6 +961,8 @@ bool Screen::applyPending() {
             mEnabledApplied = false;
             mNotice.clear();
             log("[ui] shaders disabled");
+            // 记住"现在没开光影"：下次启动就不要再自动挂回去。
+            if (mHost.rememberSelection) mHost.rememberSelection({}, false);
         } else {
             if (mPack < 0 || (std::size_t)mPack >= packs.size()) {
                 notice(tr("Select a shader pack first"), true);
@@ -878,6 +980,8 @@ bool Screen::applyPending() {
             mEnabledApplied = true;
             mNotice.clear();
             log("[ui] shaders enabled: " + pack.name);
+            // 记住这次用的包：重启游戏后按 config.json 自动挂回来。
+            if (mHost.rememberSelection) mHost.rememberSelection(pack.name, true);
         }
     }
 
@@ -933,12 +1037,13 @@ void Screen::adjustSelected(int delta) {
 }
 
 // ---------------------------------------------------------------- 设置页
-// Iris 风格自定义参数界面：参数来自光影包**真实声明**的 shaders.properties（option.*）。
-// 包没声明任何参数时显示空状态提示；改完的值写进 <包>.txt（编译链路打开后才参与编译）。
+// Iris 风格自定义参数界面：参数来自光影包真实声明的 shaders.properties（本版本没有编译链路，
+// 所以参数只存盘、不参与编译）。
 
 void Screen::enterSettings() {
     mMode = Mode::Settings;
 
+    // 参数来自光影包**真实声明**的 shaders.properties（本版本没有编译链路，只读声明）。
     auto const& packs   = ShaderPackStore::getInstance().packs();
     bool const  hasPack = (mPack >= 0 && (std::size_t)mPack < packs.size());
     mSettings           = hasPack ? settingsFromPack(packs[(std::size_t)mPack]) : SettingsModel{};
@@ -957,8 +1062,10 @@ void Screen::enterSettings() {
     mSettingIndex    = settingsFirstSelectable(mSettings, mSettingsView);
     mSettingScroll   = 0.f;
     mSettingDragging = false;
-    mHeaderFocus     = -1;
-    mButtonFocus     = -1;
+    mFocus           = Focus::Content;
+    mFocusIndex      = 0;
+    mHeaderRestore   = 0;
+    mKeyCapture      = false;
     mNotice.clear();
 
     // 进设置页时的值快照：判断有没有改动 / 「取消」时回退。
@@ -978,7 +1085,9 @@ void Screen::openSettingsCategory(int categoryIndex) {
     mSettingIndex    = settingsFirstSelectable(mSettings, mSettingsView);
     mSettingScroll   = 0.f;
     mSettingDragging = false;
-    mHeaderFocus     = -1;
+    mFocus           = Focus::Content;
+    mHeaderRestore   = 0;
+    mKeyCapture      = false;
     mSettingsLayout  = buildSettingsLayout(mLastWidth, mLastHeight, mSettings, mSettingsView,
                                            SettingPageStyle::Rows, -1, mSettingScroll);
     log("[ui] settings category: " + settingsCategoryLabel(mSettings, categoryIndex));
@@ -1003,12 +1112,147 @@ void Screen::settingsGoBack() {
 void Screen::leaveSettings() {
     mMode            = Mode::List;
     mRow             = mPack >= 0 ? mPack + 1 : 0;
-    mButtonFocus     = -1;
-    mHeaderFocus     = -1;
+    mFocus           = Focus::Content;
+    mFocusIndex      = 0;
+    mKeyCapture      = false;
     mSettingDragging = false;
 }
 
 bool Screen::settingsDirty() const { return dumpSettings(mSettings) != mSettingsSnapshot; }
+
+// ---------------------------------------------------------------- 模组设置页
+//
+// 底栏左下角「设置」按钮打开的那一页。内容是模组自己的开关（不是光影包参数）：
+//   面板热键（按一个键来绑定）/ 强制开启灵动视效 / 启动时自动加载上次光影 / 图形模式覆盖。
+// 值都落在 config.json 里，由宿主（ShaderManagerScreen）通过 readSetting / writeSetting 代理。
+
+namespace {
+// 模组设置页没有分类层级：所有非分类项直接铺成一页参数行。
+std::vector<int> allSettingItems(SettingsModel const& model) {
+    std::vector<int> view;
+    for (int i = 0; i < (int)model.items.size(); ++i) {
+        if (model.items[(std::size_t)i].kind != SettingKind::Category) view.push_back(i);
+    }
+    return view;
+}
+} // namespace
+
+void Screen::buildPreferencesModel() {
+    auto read = [this](std::string const& key) -> std::string {
+        return mHost.readSetting ? mHost.readSetting(key) : std::string{};
+    };
+
+    SettingsModel model;
+    model.title    = tr("Settings");
+    model.subtitle = tr("Options");
+
+    {
+        SettingItem item;
+        item.kind     = SettingKind::KeyBind;
+        item.span     = SettingSpan::Half;
+        item.key      = "uiKey";
+        item.label    = "Panel hotkey";
+        item.value    = read("uiKey");
+        item.defValue = "G";
+        model.items.push_back(std::move(item));
+    }
+    {
+        SettingItem item;
+        item.kind     = SettingKind::Bool;
+        item.span     = SettingSpan::Half;
+        item.key      = "forceVibrantVisuals";
+        item.label    = "Force vibrant visuals";
+        item.value    = isOnValue(read("forceVibrantVisuals")) ? "ON" : "OFF";
+        item.defValue = "ON";
+        model.items.push_back(std::move(item));
+    }
+    {
+        SettingItem item;
+        item.kind     = SettingKind::Bool;
+        item.span     = SettingSpan::Half;
+        item.key      = "autoLoadLastShader";
+        item.label    = "Auto-load last shader pack";
+        item.value    = isOnValue(read("autoLoadLastShader")) ? "ON" : "OFF";
+        item.defValue = "ON";
+        model.items.push_back(std::move(item));
+    }
+    {
+        SettingItem item;
+        item.kind     = SettingKind::Enum;
+        item.span     = SettingSpan::Half;
+        item.key      = "graphicsModeOverride";
+        item.label    = "Graphics mode override";
+        item.value    = read("graphicsModeOverride");
+        if (item.value.empty()) item.value = "0";
+        item.defValue = "0";
+        auto const add = [&item](char const* value, char const* label) {
+            item.options.push_back(SettingOption{value, label});
+        };
+        add("0", "Auto");
+        add("1", "Fancy (Forward)");
+        add("2", "Vibrant Visuals (Deferred)");
+        model.items.push_back(std::move(item));
+    }
+
+    mSettings = std::move(model);
+}
+
+void Screen::enterPreferences() {
+    mMode = Mode::Preferences;
+    buildPreferencesModel();
+
+    mSettingsPage    = -2; // -2 = 整页参数（模组设置页没有分类页）
+    mSettingsView    = allSettingItems(mSettings);
+    mSettingIndex    = settingsFirstSelectable(mSettings, mSettingsView);
+    mSettingScroll   = 0.f;
+    mSettingDragging = false;
+    mFocus           = Focus::Content;
+    mFocusIndex      = 0;
+    mHeaderRestore   = 0;
+    mKeyCapture      = false;
+    mNotice.clear();
+
+    mSettingsSnapshot = dumpSettings(mSettings);
+    mSettingsLayout   = buildSettingsLayout(
+        mLastWidth,
+        mLastHeight,
+        mSettings,
+        mSettingsView,
+        SettingPageStyle::Rows,
+        -1,
+        mSettingScroll
+    );
+    log("[ui] preferences page: " + std::to_string(mSettings.items.size()) + " item(s)");
+}
+
+void Screen::leavePreferences() {
+    mMode            = Mode::List;
+    mRow             = mPack >= 0 ? mPack + 1 : 0;
+    mFocus           = Focus::Content;
+    mFocusIndex      = 0;
+    mKeyCapture      = false;
+    mSettingDragging = false;
+}
+
+bool Screen::preferencesDirty() const { return dumpSettings(mSettings) != mSettingsSnapshot; }
+
+// 「应用」：把这一页的值逐个写回 config.json（宿主负责解释 ON/OFF、0..2、键名）。
+void Screen::applyPreferences() {
+    if (!preferencesDirty()) return;
+    bool ok = true;
+    for (auto const& item : mSettings.items) {
+        if (item.kind == SettingKind::Category) continue;
+        if (!mHost.writeSetting || !mHost.writeSetting(item.key, item.value)) ok = false;
+    }
+    mSettingsSnapshot = dumpSettings(mSettings);
+    notice(ok ? tr("Settings saved") : tr("Some settings could not be saved"), !ok);
+    log(std::string("[ui] preferences applied: ") + (ok ? "ok" : "partial"));
+}
+
+void Screen::discardPreferences() {
+    discardSettingsEdits();
+    mKeyCapture = false;
+}
 
 void Screen::applySettingsEdits() {
     if (!settingsDirty()) return; // 没有改动：点「应用」什么都不做（和列表页一致）
@@ -1172,34 +1416,125 @@ void Screen::moveSettingSelection(int dx, int dy) {
     }
 }
 
-bool Screen::handleSettingsKey(int keyCode) {
-    // 焦点在底栏按钮上：沿用和列表页同一套按钮导航。
-    if (mButtonFocus >= 0) {
-        switch (keyCode) {
-        case 0x26: mButtonFocus = (mButtonFocus >= 2) ? std::max(mButtonFocus - 2, 0) : -1; return true;
-        case 0x28: if (mButtonFocus < 2) mButtonFocus = std::min(mButtonFocus + 2, 4); return true;
-        case 0x25: mButtonFocus = (mButtonFocus >= 2) ? std::max(mButtonFocus - 1, 2) : 0; return true;
-        case 0x27: mButtonFocus = (mButtonFocus >= 2) ? std::min(mButtonFocus + 1, 4) : 1; return true;
-        case 0x0D:
-            click();
-            activateButton(mButtonFocus);
-            return true;
-        case 0x1B: settingsGoBack(); return true;
-        default:   return true;
+// 焦点回到内容区（列表行 / 参数行）。
+void Screen::focusContent() { mFocus = Focus::Content; }
+
+// 按钮区（底栏 5 个 + 右下角预览 + 左下角设置）里的方向键移动：按几何位置找"那个方向最近的那个"。
+// 用户反馈的两个问题都在这里收口：
+//   ① 以前底栏上排是 `mButtonFocus - 2`，从「完成」往上会跳到「取消」，而它正上方其实是
+//      「光影包设置…」——现在按矩形位置选（上下重叠优先），「完成」上就是「光影包设置…」；
+//   ② 右下角「全透明」和左下角「设置」以前根本进不去，现在它们是同一张候选表里的按钮。
+bool Screen::moveButtonFocus(int dx, int dy) {
+    if (dx == 0 && dy == 0) return false;
+
+    struct Candidate {
+        Focus zone;
+        int   index;
+        Rect  rect;
+    };
+
+    std::vector<Candidate> candidates;
+    auto const&            L = mLayout;
+    for (int i = 0; i < L.buttonCount; ++i) candidates.push_back({Focus::Bottom, i, L.buttons[i]});
+    if (L.previewButton.valid()) candidates.push_back({Focus::Preview, 0, L.previewButton});
+    if (L.settingsButton.valid()) candidates.push_back({Focus::SettingsButton, 0, L.settingsButton});
+
+    // 当前焦点所在的矩形；找不到（比如刚进界面）就退回底栏第一个按钮。
+    Rect current{};
+    for (auto const& c : candidates) {
+        if (c.zone == mFocus && c.index == mFocusIndex) {
+            current = c.rect;
+            break;
         }
     }
+    if (!current.valid()) {
+        if (mFocus == Focus::Preview) current = L.previewButton;
+        else if (mFocus == Focus::SettingsButton) current = L.settingsButton;
+        else current = (mFocusIndex >= 0 && mFocusIndex < L.buttonCount) ? L.buttons[mFocusIndex] : Rect{};
+    }
+    if (!current.valid()) return false;
 
+    float const curX = (current.x0 + current.x1) / 2.f;
+    float const curY = (current.y0 + current.y1) / 2.f;
+
+    // 垂直方向看 x 轴是否重叠，反之亦然：重叠 = 0 分，不重叠按空隙扣分（3 倍权重，
+    // 保证"正上方/正下方"优先于"斜对角"）。
+    auto gap = [](float a0, float a1, float b0, float b1) {
+        if (a1 < b0) return b0 - a1;
+        if (b1 < a0) return a0 - b1;
+        return 0.f;
+    };
+
+    // 两轮挑选：
+    //   第一轮只认"在那个方向上、而且与当前按钮在垂直轴上有重叠"的（同一排 / 同一个角落），
+    //   按主轴距离取最近的 —— 这一步保证「取消」往右走是「应用」而不是"斜上方的打开文件夹"；
+    //   第二轮才允许斜向（比如右下角按钮往上走）：按主轴距离 + 3 倍垂直空隙挑最近的。
+    bool      foundOverlap = false;
+    float     bestOverlap  = 0.f;
+    Candidate overlapC{};
+    bool      foundAny = false;
+    float     bestAny  = 0.f;
+    Candidate anyC{};
+    for (auto const& c : candidates) {
+        if (c.zone == mFocus && c.index == mFocusIndex) continue;
+        if (!c.rect.valid()) continue;
+
+        float const cx = (c.rect.x0 + c.rect.x1) / 2.f;
+        float const cy = (c.rect.y0 + c.rect.y1) / 2.f;
+        float       primary;
+        float       perpGap;
+        if (dx != 0) {
+            primary = (cx - curX) * (float)dx;
+            if (primary <= 0.5f) continue;
+            perpGap = gap(current.y0, current.y1, c.rect.y0, c.rect.y1);
+        } else {
+            primary = (cy - curY) * (float)dy;
+            if (primary <= 0.5f) continue;
+            perpGap = gap(current.x0, current.x1, c.rect.x0, c.rect.x1);
+        }
+        float const score = primary + perpGap * 3.f;
+        if (!foundAny || score < bestAny) {
+            foundAny = true;
+            bestAny  = score;
+            anyC     = c;
+        }
+        if (perpGap <= 0.f && (!foundOverlap || primary < bestOverlap)) {
+            foundOverlap = true;
+            bestOverlap  = primary;
+            overlapC     = c;
+        }
+    }
+    if (!foundAny) return false;
+    Candidate const& chosen = foundOverlap ? overlapC : anyC;
+    mFocus      = chosen.zone;
+    mFocusIndex = chosen.index;
+    return true;
+}
+
+// 设置页（光影包参数 / 模组设置）内容区的键盘操作。
+bool Screen::handleSettingsKey(int keyCode) {
     switch (keyCode) {
     case 0x1B: // Esc = 「返回」：先回上一层，顶层再回光影包列表
-        settingsGoBack();
+        if (mMode == Mode::Preferences) leavePreferences();
+        else settingsGoBack();
         return true;
-    case 0x26: // Up
+    case 0x26: { // Up：已经在第一项就上到顶栏四个按钮
+        int const before = mSettingIndex;
         moveSettingSelection(0, -1);
+        if (mSettingIndex == before) {
+            mHeaderRestore = (mHeaderRestore < 0) ? 0 : mHeaderRestore;
+            mFocus         = Focus::Header;
+            mFocusIndex    = mHeaderRestore;
+        }
         return true;
+    }
     case 0x28: { // Down：到底了就交给底栏按钮
         int const before = mSettingIndex;
         moveSettingSelection(0, 1);
-        if (mSettingIndex == before) mButtonFocus = 2;
+        if (mSettingIndex == before) {
+            mFocus      = Focus::Bottom;
+            mFocusIndex = 2;
+        }
         return true;
     }
     case 0x25: // Left
@@ -1208,14 +1543,18 @@ bool Screen::handleSettingsKey(int keyCode) {
     case 0x27: // Right
         moveSettingSelection(1, 0);
         return true;
-    case 0x0D: // Enter：分类按钮=打开下一层；参数=改值（bool 取反 / enum 循环 / color 换色）
-        if (mSettingIndex >= 0 && (std::size_t)mSettingIndex < mSettings.items.size() &&
-            mSettings.items[(std::size_t)mSettingIndex].kind == SettingKind::Category) {
+    case 0x0D: // Enter：分类=下一层；键位=开始录键；其它=改值
+        if (mSettingIndex >= 0 && (std::size_t)mSettingIndex < mSettings.items.size()) {
+            auto const& item = mSettings.items[(std::size_t)mSettingIndex];
             click();
-            openSettingsCategory(mSettingIndex);
-        } else if (mSettingIndex >= 0) {
-            click();
-            settingsAdjust(mSettings, mSettingIndex, 1);
+            if (item.kind == SettingKind::Category) {
+                openSettingsCategory(mSettingIndex);
+            } else if (item.kind == SettingKind::KeyBind) {
+                mKeyCapture = true;
+                notice(tr("Press a key..."), false);
+            } else {
+                settingsAdjust(mSettings, mSettingIndex, 1);
+            }
         }
         return true;
     case 0xDB: // [
@@ -1238,6 +1577,187 @@ bool Screen::handleSettingsKey(int keyCode) {
     }
 }
 
+// 列表页内容区。
+bool Screen::handleListKey(int keyCode) {
+    switch (keyCode) {
+    case 0x1B:            // Escape
+        discardPending(); // 和「取消」一样：丢掉没应用的改动
+        close();
+        return true;
+    case 0x26: // Up
+        if (mRow > 0) {
+            --mRow;
+            listSyncToRow();
+        }
+        return true;
+    case 0x28: { // Down：到底了就把焦点交给底栏
+        int const count = contentCount();
+        if (mRow + 1 < count) {
+            ++mRow;
+            listSyncToRow();
+        } else {
+            mFocus      = Focus::Bottom;
+            mFocusIndex = 2;
+        }
+        return true;
+    }
+    case 0x0D: // Enter
+        click();
+        activateRow(mRow);
+        return true;
+    case 0xDB: // [ —— 减小选中项的值
+        click();
+        adjustSelected(-1);
+        return true;
+    case 0xDD: // ] —— 增大选中项的值
+        click();
+        adjustSelected(1);
+        return true;
+    case 0x09: // Tab
+        selectRow(1);
+        return true;
+    default:
+        return true;
+    }
+}
+
+// 设置页顶栏四个按钮（返回 / 导入 / 导出 / 重置）。以前只有鼠标点得到，方向键上不去。
+bool Screen::handleHeaderKey(int keyCode) {
+    bool const hasFileButtons = (mMode == Mode::Settings);
+    int const  lastIndex      = hasFileButtons ? 3 : 0;
+    switch (keyCode) {
+    case 0x1B: // Esc：和「返回」一样
+        if (mMode == Mode::Preferences) leavePreferences();
+        else settingsGoBack();
+        return true;
+    case 0x25: // Left
+        mFocusIndex = std::max(mFocusIndex - 1, 0);
+        mHeaderRestore = mFocusIndex;
+        return true;
+    case 0x27: // Right
+        mFocusIndex = std::min(mFocusIndex + 1, lastIndex);
+        mHeaderRestore = mFocusIndex;
+        return true;
+    case 0x28: // Down：回到参数行
+        focusContent();
+        return true;
+    case 0x0D: // Enter：按下顶栏按钮
+        click();
+        if (mFocusIndex == 0) {
+            if (mMode == Mode::Preferences) leavePreferences();
+            else settingsGoBack();
+        } else if (mMode == Mode::Settings) {
+            if (mFocusIndex == 1) importSettingsFile();
+            else if (mFocusIndex == 2) exportSettingsFile();
+            else {
+                settingsResetDefaults(mSettings);
+                notice(tr("Reset to defaults"), false);
+            }
+        }
+        return true;
+    default:
+        return true;
+    }
+}
+
+bool Screen::handleBottomKey(int keyCode) {
+    switch (keyCode) {
+    case 0x1B: // Esc：焦点先回内容区（再按一次才是"返回/关闭"）
+        focusContent();
+        return true;
+    case 0x26: // Up：下排 -> 上排（按位置选）；上排 -> 内容区
+        if (mFocusIndex < 2 || !moveButtonFocus(0, -1)) focusContent();
+        return true;
+    case 0x28: // Down：上排 -> 下排（按位置选）
+        moveButtonFocus(0, 1);
+        return true;
+    case 0x25: // Left：底栏内往左；在最左边就是左下角的「设置」
+        moveButtonFocus(-1, 0);
+        return true;
+    case 0x27: // Right：底栏内往右；在最右边就是右下角的「全透明」
+        moveButtonFocus(1, 0);
+        return true;
+    case 0x0D: // Enter
+        click();
+        activateButton(mFocusIndex);
+        return true;
+    default:
+        return true;
+    }
+}
+
+bool Screen::handlePreviewKey(int keyCode) {
+    switch (keyCode) {
+    case 0x1B:
+        focusContent();
+        return true;
+    case 0x0D: // Enter：进入「全透明」预览模式
+        click();
+        mTransparentPreview = true;
+        log("[ui] transparent preview on");
+        return true;
+    case 0x26:
+    case 0x28:
+    case 0x25:
+        moveButtonFocus(0, -1);
+        if (mFocus == Focus::Preview) moveButtonFocus(-1, 0);
+        return true;
+    case 0x27:
+        moveButtonFocus(-1, 0);
+        return true;
+    default:
+        return true;
+    }
+}
+
+bool Screen::handleSettingsButtonKey(int keyCode) {
+    switch (keyCode) {
+    case 0x1B:
+        focusContent();
+        return true;
+    case 0x0D: // Enter：打开模组设置页
+        click();
+        enterPreferences();
+        return true;
+    case 0x27: // Right：回到取消按钮（底栏最左边那个）
+        mFocus      = Focus::Bottom;
+        mFocusIndex = 2;
+        return true;
+    case 0x26:
+    case 0x28:
+        moveButtonFocus(0, keyCode == 0x26 ? -1 : 1);
+        if (mFocus == Focus::SettingsButton) focusContent();
+        return true;
+    default:
+        return true;
+    }
+}
+
+// 设置页录键位：按下的第一个键就是新的面板热键。
+bool Screen::handleKeyCapture(int keyCode) {
+    if (keyCode == 0x1B) { // Esc 取消
+        mKeyCapture = false;
+        notice(tr("Key binding cancelled"), true);
+        return true;
+    }
+    // 回车 / Tab 是界面自己的操作键，不能拿来当面板热键。
+    if (keyCode == 0x0D || keyCode == 0x09) {
+        notice(tr("That key cannot be used"), true);
+        return true;
+    }
+    std::string name = hotkeyNameFromVk(keyCode);
+    if (name.empty()) {
+        notice(tr("Unsupported key"), true);
+        return true;
+    }
+    if (mSettingIndex >= 0 && (std::size_t)mSettingIndex < mSettings.items.size()) {
+        mSettings.items[(std::size_t)mSettingIndex].value = name;
+    }
+    mKeyCapture = false;
+    notice(tr("Panel hotkey") + ": " + name + " (" + tr("press Apply to save") + ")", false);
+    return true;
+}
+
 void Screen::activateRow(int index) {
     if (mMode != Mode::List) return;
     auto const& packs = ShaderPackStore::getInstance().packs();
@@ -1250,10 +1770,10 @@ void Screen::activateRow(int index) {
     int const packIndex = index - 1;
     if (packIndex < 0 || (std::size_t)packIndex >= packs.size()) return;
     // 选中一个光影 = 打算用它（开关显示"已启用"），但**先不加载**，等「应用/完成」。
-    mPack        = packIndex;
-    mRow         = index;
-    mButtonFocus = -1;
-    mEnabled     = true;
+    mPack    = packIndex;
+    mRow     = index;
+    mEnabled = true;
+    focusContent();
     snapshotParameters(); // 快照换成这个包的参数，之后调参才算"改动"
 }
 
@@ -1263,13 +1783,16 @@ void Screen::activateButton(int index) {
         if (mHost.openFolder) mHost.openFolder();
         return;
     case 1: // 光影包设置... / 光影包列表...
-        if (mMode == Mode::List) {
-            enterSettings();
-        } else {
-            leaveSettings();
-        }
+        if (mMode == Mode::List) enterSettings();
+        else if (mMode == Mode::Preferences) leavePreferences();
+        else leaveSettings();
         return;
-    case 2: // 取消：设置页 = 回列表；列表页 = 丢掉改动并退出
+    case 2: // 取消：设置页/模组设置页 = 回列表；列表页 = 丢掉改动并退出
+        if (mMode == Mode::Preferences) {
+            discardPreferences();
+            leavePreferences();
+            return;
+        }
         if (mMode == Mode::Settings) {
             discardSettingsEdits();
             leaveSettings();
@@ -1279,6 +1802,10 @@ void Screen::activateButton(int index) {
         close();
         return;
     case 3: // 应用：把暂存的改动落地（加载/还原/存盘），界面保持不变
+        if (mMode == Mode::Preferences) {
+            applyPreferences();
+            return;
+        }
         if (mMode == Mode::Settings) {
             applySettingsEdits();
             return;
@@ -1287,6 +1814,11 @@ void Screen::activateButton(int index) {
         return;
     case 4: // 完成 = 应用 + 退出面板。**没有改动 / 不用编译也要关掉**
         // （用户反馈：编译暂停时点「完成」没反应，面板应该照样关）。
+        if (mMode == Mode::Preferences) {
+            applyPreferences();
+            leavePreferences();
+            return;
+        }
         if (mMode == Mode::Settings) {
             applySettingsEdits();
             close();
@@ -1314,90 +1846,46 @@ bool Screen::dirty() const {
 bool Screen::handleKey(int keyCode) {
     if (!mVisible) return false;
 
-    // 透明预览时键盘也一概不响应，避免误操作；只保留右下角按钮。
-    if (mTransparentPreview) return true;
+    // 透明预览：只保留右下角按钮（也可以用回车/ Esc 退出来 —— 方向键现在能走到这个按钮，
+    // 键盘进来的人必须有键盘出去的路）。
+    if (mTransparentPreview) {
+        if (keyCode == 0x0D || keyCode == 0x1B) {
+            mTransparentPreview = false;
+            focusContent();
+            log("[ui] transparent preview off");
+        }
+        return true;
+    }
 
     // 编译中锁住界面。
     if (blocked()) return true;
 
+    // 设置页正在等玩家按一个键来绑定：这一下只用来录键位。
+    if (mKeyCapture) return handleKeyCapture(keyCode);
+
     log("[ui] key " + std::to_string(keyCode) + " mode=" + std::to_string((int)mMode) + " row=" + std::to_string(mRow)
         + " rowCount=" + std::to_string(mLayout.rowCount));
 
-    // 设置页有自己的一套选择 / 版式导航。
-    if (mMode == Mode::Settings) return handleSettingsKey(keyCode);
+    // 先按"焦点在哪个区"分发：每个区有自己的方向键规则，到边界会跨区。
+    switch (mFocus) {
+    case Focus::Header:
+        return handleHeaderKey(keyCode);
+    case Focus::Bottom:
+        return handleBottomKey(keyCode);
+    case Focus::Preview:
+        return handlePreviewKey(keyCode);
+    case Focus::SettingsButton:
+        return handleSettingsButtonKey(keyCode);
+    case Focus::Content:
+        break;
+    }
 
-    switch (keyCode) {
-    case 0x1B:            // Escape
-        discardPending(); // 和「取消」一样：丢掉没应用的改动
-        close();
-        return true;
-    case 0x26: // Up
-        if (mButtonFocus >= 0) {
-            mButtonFocus = (mButtonFocus >= 2) ? std::max(mButtonFocus - 2, 0) : -1;
-        } else if (mRow > 0) {
-            --mRow;
-            listSyncToRow(); // 键盘移动选中行：把可观窗口跟着挪过去（滚轮不会这么做）
-        }
-        return true;
-    case 0x28: // Down
-        if (mButtonFocus >= 0) {
-            if (mButtonFocus < 2) mButtonFocus = std::min(mButtonFocus + 2, 4);
-        } else {
-            int count = contentCount();
-            if (mRow + 1 < count) {
-                ++mRow;
-                listSyncToRow();
-            } else {
-                mButtonFocus = 2; // 到底了：焦点交给下排第一个按钮
-            }
-        }
-        return true;
-    case 0x25: // Left
-        if (mButtonFocus >= 2) {
-            mButtonFocus = std::max(mButtonFocus - 1, 2);
-        } else if (mButtonFocus >= 0) {
-            mButtonFocus = 0;
-        } else if (mRow > 0) {
-            --mRow;
-            listSyncToRow();
-        }
-        return true;
-    case 0x27: // Right
-        if (mButtonFocus >= 2) {
-            mButtonFocus = std::min(mButtonFocus + 1, 4);
-        } else if (mButtonFocus >= 0) {
-            mButtonFocus = 1;
-        } else if (mRow + 1 < contentCount()) {
-            ++mRow;
-            listSyncToRow();
-        }
-        return true;
-    case 0x0D: // Enter —— 等同鼠标左键：按钮就按按钮，否则执行选中项
-        if (mButtonFocus >= 0) {
-            click();
-            activateButton(mButtonFocus);
-        } else {
-            click();
-            activateRow(mRow);
-        }
-        return true;
-    case 0xDB: // [ —— 减小选中项的值
-        click();
-        adjustSelected(-1);
-        return true;
-    case 0xDD: // ] —— 增大选中项的值
-        click();
-        adjustSelected(1);
-        return true;
-    case 0x09: // Tab
-        selectRow(1);
-        return true;
+    // 内容区：列表行 / 设置项各有自己的一套走位。
+    if (mMode == Mode::Settings || mMode == Mode::Preferences) return handleSettingsKey(keyCode);
+    return handleListKey(keyCode);
     // 注意：这里【不再】给 1..5 绑定五个按钮。之前绑了，结果在界面打开时按数字键
     // 会直接把「打开光影包文件夹」「应用（编译）」这些动作触发掉，打字也会中招。
     // 五个按钮只用鼠标左键或方向键 + 回车操作。
-    default:
-        return true; // 界面打开时吃掉所有按键，避免影响游戏
-    }
 }
 
 // 滚轮：设置页上下滚动。正值 = 向上滚 ⇒ 内容往下走（scroll 减小）。
@@ -1411,7 +1899,7 @@ bool Screen::handleWheel(int delta) {
     int const dir = (delta > 0) ? 1 : (delta < 0 ? -1 : 0); // +1 = 向上滚
     if (dir == 0) return true;
 
-    if (mMode == Mode::Settings) {
+    if (mMode == Mode::Settings || mMode == Mode::Preferences) {
         // 设置页：滚内容（向上滚 = 内容往下走）。
         constexpr float step = 30.f; // 一格滚轮滚动的 GUI 单位
         mSettingScroll -= (float)dir * step;
@@ -1474,10 +1962,18 @@ bool Screen::handleMouseButton(MouseButton button, float x, float y, bool down) 
         return true;
     }
 
+    // 左下角「设置」按钮：打开模组设置页（面板热键 / 强制灵动视效 / 自动加载）。
+    if (down && !wasDown && L.settingsButton.contains(hx, hy)) {
+        log("[ui] settings button clicked");
+        click();
+        enterPreferences();
+        return true;
+    }
+
     // 滚动条按住拖动：列表页 / 设置页共用。按下时若落在滑块上就记下"指针相对滑块顶端的偏移"
     // （拖起来不跳），落在轨道空白处就把滑块中心挪到指针处。
     if (down && !wasDown) {
-        if (mMode == Mode::Settings) {
+        if (mMode == Mode::Settings || mMode == Mode::Preferences) {
             SettingsLayout const& S = mSettingsLayout;
             if (S.maxScroll > 0.f && S.scrollTrack.valid() && S.scrollTrack.contains(hx, hy)) {
                 float const handleH = S.scrollHandle.y1 - S.scrollHandle.y0;
@@ -1511,7 +2007,7 @@ bool Screen::handleMouseButton(MouseButton button, float x, float y, bool down) 
     }
 
     // 设置页：滑块拖动（不要求新按下，方便连续拖到目标数值）。
-    if (mMode == Mode::Settings) {
+    if (mMode == Mode::Settings || mMode == Mode::Preferences) {
         if (!down) {
             // Iris 在松开滑块时也回一声（onReleased）。
             if (mSettingDragging) click();
@@ -1544,7 +2040,8 @@ bool Screen::handleMouseButton(MouseButton button, float x, float y, bool down) 
     for (int i = 0; i < L.buttonCount; ++i) {
         if (L.buttons[i].contains(hx, hy)) {
             log("[ui] button " + std::to_string(i) + " clicked");
-            mHeaderFocus = -1;
+            mFocus      = Focus::Bottom;
+            mFocusIndex = i;
             click();
             activateButton(i);
             return true;
@@ -1552,36 +2049,43 @@ bool Screen::handleMouseButton(MouseButton button, float x, float y, bool down) 
     }
 
     // 设置页：顶栏（返回 + 导入/导出/重置）→ 参数行 → 滚动条。
-    if (mMode == Mode::Settings) {
+    if (mMode == Mode::Settings || mMode == Mode::Preferences) {
         SettingsLayout const& S = mSettingsLayout;
 
         if (S.headerBack.contains(hx, hy)) {
-            mHeaderFocus = 0;
+            mFocus         = Focus::Header;
+            mFocusIndex    = 0;
+            mHeaderRestore = 0;
             log("[ui] settings back");
             click();
-            settingsGoBack(); // 先在设置页内部逐层往上，已经在顶层才回光影包列表
+            if (mMode == Mode::Preferences) leavePreferences();
+            else settingsGoBack(); // 先在设置页内部逐层往上，已经在顶层才回光影包列表
             return true;
         }
-        for (int i = 0; i < S.headerCount; ++i) {
-            if (!S.header[i].contains(hx, hy)) continue;
-            mHeaderFocus = i + 1;
-            click();
-            if (i == 0) { // 导入配置文件：从外部选一份配置读进来
-                importSettingsFile();
-            } else if (i == 1) { // 导出配置文件：把当前值写到外部选的位置
-                exportSettingsFile();
-            } else { // 重置为默认配置
-                settingsResetDefaults(mSettings);
-                notice(tr("Reset to defaults"), false);
+        if (mMode == Mode::Settings) {
+            for (int i = 0; i < S.headerCount; ++i) {
+                if (!S.header[i].contains(hx, hy)) continue;
+                mFocus         = Focus::Header;
+                mFocusIndex    = i + 1;
+                mHeaderRestore = i + 1;
+                click();
+                if (i == 0) { // 导入配置文件：从外部选一份配置读进来
+                    importSettingsFile();
+                } else if (i == 1) { // 导出配置文件：把当前值写到外部选的位置
+                    exportSettingsFile();
+                } else { // 重置为默认配置
+                    settingsResetDefaults(mSettings);
+                    notice(tr("Reset to defaults"), false);
+                }
+                log("[ui] settings header button " + std::to_string(i) + " clicked");
+                return true;
             }
-            log("[ui] settings header button " + std::to_string(i) + " clicked");
-            return true;
         }
 
         SettingPart part = SettingPart::None;
         int const   idx  = settingsHitTest(S, hx, hy, &part);
         if (idx >= 0) {
-            mHeaderFocus  = -1;
+            mFocus        = Focus::Content;
             mSettingIndex = idx;
             auto& item    = mSettings.items[(std::size_t)idx];
             log("[ui] settings item " + std::to_string(idx) + " part=" +
@@ -1593,7 +2097,12 @@ bool Screen::handleMouseButton(MouseButton button, float x, float y, bool down) 
                 return true;
             }
             if (part == SettingPart::Control) {
-                if (item.kind == SettingKind::Slider) {
+                if (item.kind == SettingKind::KeyBind) {
+                    // 点值框 = 开始录键位（也可以用回车）
+                    click();
+                    mKeyCapture = true;
+                    notice(tr("Press a key..."), false);
+                } else if (item.kind == SettingKind::Slider) {
                     // 选中即放大占满文本框，并按点击位置落到对应数值；之后可以继续拖。
                     click(); // Iris：按下滑块（抓住）就回一声
                     Rect track{};

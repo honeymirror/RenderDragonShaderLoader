@@ -24,12 +24,17 @@ public:
     static ShaderManagerScreen& getInstance();
 
     [[nodiscard]] bool visible() const;
+    // 设置页正在"录键位"：宿主的热键监听要放行这一次按键，交给界面处理。
+    [[nodiscard]] bool capturingKey() const;
     void               toggle();
     void               close();
     void               open();
     void               open(IClientInstance& client);
     // 外部拖放导入完成后回调：面板开着就立刻重扫并刷新列表。
     void               refreshPacks();
+
+    // 启动时按配置自动恢复了上次的光影：把这个"已生效"的状态同步给界面。
+    void               setAppliedShaderPack(std::string const& packName, bool enabled);
 
     // 只在自己占位屏幕的那一趟 UI pass 里调用。BeforeUIRenderEvent 会 cancel，
     // 原生命令对话框就不会画出来；界面直接画在它的位置上。

@@ -21,6 +21,23 @@ mods/RenderDragonShaderLoader/
 
 把 `*.zip` 拖进游戏窗口，或者直接丢进 `data/shaderpacks/` 都行；打开面板时会自动重扫。
 
+`.mcpack` 也认：它本来就是个 zip 容器，所以**拖进游戏窗口时会自动改名成 `.zip`** 再放进
+`data/shaderpacks/`；手动拷进 `shaderpacks/` 的 `.mcpack` 在扫描时也会自动改名
+（同名 `.zip` 已存在就不动，避免覆盖）。
+
+## 渲染路线（花式 / 灵动视效）是怎么判定的
+
+模组按产物的**文件名**猜：出现任何一个 `*Deferred*.material.bin`
+（`DeferredShading` / `DeferredIndirectSpecular` / `DeferredWater` / `DeferredTiledMixedRes` /
+`DeferredMixedResolution*` / `SkyProbeDeferredShading` 都属于这一类）就按延迟渲染
+（灵动视效）算，否则按前向（花式）算。启用光影时按这个结果自动切游戏的图形模式。
+
+实测 26.40 的包分得很干净：Mirai 的 51 个产物里有 7 个 `Deferred*`，而 5.1 Windows /
+newb-classic / nxs / nr / nts 这些前向包**一个都没有**。但这终究只是"名字"：
+如果某个包只改了 `*ForwardPBR*` / `*Prepass*` 而把延迟 pass 留给游戏原版，它就会被判成前向。
+所以模组设置页（底栏左下角「设置」）里留了**「图形模式覆盖」**（自动 / 强制花式 /
+强制灵动视效）给玩家兜底。
+
 ## 模组怎么在包里找产物
 
 按顺序找第一个命中的目录：

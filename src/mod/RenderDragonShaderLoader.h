@@ -1,10 +1,14 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
+#include <string>
 
 #include "ll/api/mod/NativeMod.h"
 
 namespace renderdragon_shader_loader {
+
+struct Config;
 
 class RenderDragonShaderLoader {
 
@@ -36,6 +40,22 @@ public:
 
     /// 重新扫描着色器包目录。
     void rescan();
+
+    /// 当前配置（只读）。界面层要读 graphicsModeOverride / autoLoadLastShader 等开关。
+    /// 注意不能叫 config()：会遮蔽同名的全局配置对象。
+    [[nodiscard]] Config const& getConfig() const;
+
+    /// 改配置并立刻写回 config.json（记住上次用的光影、界面里改开关 / 热键都走它）。
+    bool updateConfig(std::function<void(Config&)> const& mutate);
+
+    /// 「应用 / 完成」落地后由界面调用：记住这次真正生效的光影（包名 + 开关）。
+    void rememberShaderSelection(std::string const& packName, bool enabled);
+
+    /// 启动时按配置恢复上次用的光影（没有配置 / 包不在 / 没有产物时什么都不做）。
+    void restoreLastShaderOnStart();
+
+    /// 校验并保存面板热键（设置页录键位 / `/shader key` 共用）。名字不认识返回 false。
+    bool setPanelHotkey(std::string const& name);
 
     // 需要支持卸载时再实现该方法。
     // /// @return 卸载成功返回 true。

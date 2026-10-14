@@ -345,24 +345,45 @@ void ShaderPackStore::scan(std::filesystem::path const& packsRoot, std::filesyst
         }
 
         if (!entry.is_regular_file(ec)) continue;
-        if (toLower(entry.path().extension().string()) != ".zip") continue;
+
+        auto path = entry.path();
+        auto ext  = toLower(path.extension().string());
+        if (ext == ".mcpack") {
+            // .mcpack 其实就是 zip（玩家从浏览器/文件管理器拖进来时常常是这个名字）。
+            // 这里自动把后缀改成 .zip 再按 zip 处理，行为与窗口拖放导入一致。
+            auto            target = path;
+            std::error_code renameEc;
+            target.replace_extension(".zip");
+            if (!std::filesystem::exists(target, renameEc)) {
+                std::filesystem::rename(path, target, renameEc);
+                if (!renameEc) path = target;
+            }
+            ext = ".zip";
+        }
+        if (ext != ".zip") continue;
 
         // .zip 形式的包：解压到 generated/<名字>/src/ 作为工作副本。
-        auto name = entry.path().stem().string();
+        auto name = path.stem().string();
         auto src  = generatedRoot / name / "src";
-        if (!ensureExtracted(entry.path(), src)) {
+        if (!ensureExtracted(path, src)) {
             // 解压失败（空 zip / 坏 zip）也照样列出来：Iris 也是这样——玩家能看到自己放进去的
             // 包，真要编译/使用时再报错。以前这里直接 continue，导致刚放进去的空 zip 根本
             // 不出现在列表里（实测就是这个问题）。
             mPacks.push_back(
-                loadPack(src, entry.path(), generatedRoot / name / "compiled", packsRoot / (fileName + ".txt"), src)
+                loadPack(
+                    src,
+                    path,
+                    generatedRoot / name / "compiled",
+                    packsRoot / (path.filename().string() + ".txt"),
+                    src
+                )
             );
             continue;
         }
 
         auto bins = generatedRoot / name / "compiled";
         mPacks.push_back(
-            loadPack(normalizeSourceDir(src), entry.path(), bins, packsRoot / (fileName + ".txt"), src)
+            loadPack(normalizeSourceDir(src), path, bins, packsRoot / (path.filename().string() + ".txt"), src)
         );
     }
 }
@@ -371,6 +392,11 @@ ShaderRenderMode detectRenderMode(std::filesystem::path const& binsDir) {
     std::error_code ec;
     if (!std::filesystem::is_directory(binsDir, ec)) return ShaderRenderMode::Forward;
 
+    // 判据：延迟渲染专属的 pass 名字。26.40 vanilla 材质里属于这一类的有
+    // DeferredShading / DeferredShadingBase / DeferredIndirectSpecular / DeferredTiledMixedRes /
+    // DeferredMixedResolution(+Caustics/LightingPrepass/SurfaceRadiance) / DeferredWater /
+    // SkyProbeDeferredShading；共有的前缀就是 "Deferred"，所以按前缀收口。
+    // （实测 Mirai 的 51 个产物里有 7 个 Deferred*，其余前向包一个都没有。）
     for (auto const& entry : std::filesystem::directory_iterator(binsDir, ec)) {
         if (!entry.is_regular_file(ec)) continue;
         auto name = toLower(entry.path().filename().string());

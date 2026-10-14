@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -53,8 +54,11 @@
 #include "mc/deps/input/RectangleArea.h"
 
 #include "core/GraphicsModeController.h"
+#include "core/Hotkey.h"
 #include "core/ShaderPack.h"
+#include "core/VibrantVisuals.h"
 #include "hook/MaterialHooks.h"
+#include "mod/Config.h"
 #include "mod/RenderDragonShaderLoader.h"
 
 namespace renderdragon_shader_loader {
@@ -467,8 +471,11 @@ ShaderManagerScreen::ShaderManagerScreen() {
 
     // 列表页的「应用」= 先按光影的渲染路线切图形模式，再把已有产物挂上去。
     host.reload = [](ShaderPack const& pack) {
-        ll::thread::ClientThreadExecutor::getDefault().execute([pack] {
-            GraphicsModeController::applyForPack(pack);
+        // 玩家可以在模组设置页里手动覆盖图形模式（自动判定只是按文件名猜的）。
+        auto const overrideMode = RenderDragonShaderLoader::getInstance().getConfig().graphicsModeOverride;
+        auto const mode         = applyRenderModeOverride(pack.renderMode, overrideMode);
+        ll::thread::ClientThreadExecutor::getDefault().execute([pack, mode] {
+            GraphicsModeController::applyForRenderMode(mode);
             MaterialHooks::getInstance().queueReload(pack.binsDir);
         });
     };
@@ -561,6 +568,49 @@ ShaderManagerScreen::ShaderManagerScreen() {
         uiTrace("closeScreen: done");
     };
 
+    // ---- 模组设置页（底栏左下角「设置」）的数据通道 ----
+    host.readSetting = [](std::string const& key) -> std::string {
+        auto const& cfg = RenderDragonShaderLoader::getInstance().getConfig();
+        if (key == "uiKey") return cfg.uiKey;
+        if (key == "forceVibrantVisuals") return cfg.forceVibrantVisuals ? "ON" : "OFF";
+        if (key == "autoLoadLastShader") return cfg.autoLoadLastShader ? "ON" : "OFF";
+        if (key == "graphicsModeOverride") return std::to_string(cfg.graphicsModeOverride);
+        return {};
+    };
+    host.writeSetting = [](std::string const& key, std::string const& value) -> bool {
+        auto& mod = RenderDragonShaderLoader::getInstance();
+        if (key == "uiKey") {
+            bool const ok = mod.setPanelHotkey(value);
+            uiTrace(std::string("settings: uiKey -> ") + value + (ok ? " ok" : " rejected"));
+            return ok;
+        }
+        if (key == "forceVibrantVisuals") {
+            bool const enabled = (value == "ON" || value == "TRUE" || value == "1");
+            bool const ok      = mod.updateConfig([&](Config& cfg) { cfg.forceVibrantVisuals = enabled; });
+            if (ok) setForceVibrantVisuals(enabled);
+            uiTrace(std::string("settings: forceVibrantVisuals -> ") + (enabled ? "on" : "off"));
+            return ok;
+        }
+        if (key == "autoLoadLastShader") {
+            bool const enabled = (value == "ON" || value == "TRUE" || value == "1");
+            bool const ok      = mod.updateConfig([&](Config& cfg) { cfg.autoLoadLastShader = enabled; });
+            uiTrace(std::string("settings: autoLoadLastShader -> ") + (enabled ? "on" : "off"));
+            return ok;
+        }
+        if (key == "graphicsModeOverride") {
+            int const mode = std::clamp(std::atoi(value.c_str()), 0, 2);
+            // 下一次加载光影 / 下次启动时生效；这里只落盘。
+            bool const ok = mod.updateConfig([&](Config& cfg) { cfg.graphicsModeOverride = mode; });
+            uiTrace("settings: graphicsModeOverride -> " + std::to_string(mode));
+            return ok;
+        }
+        return false;
+    };
+    // 「应用 / 完成」真的把某个包挂上后：记住它，重启游戏时自动恢复。
+    host.rememberSelection = [](std::string const& packName, bool enabled) {
+        RenderDragonShaderLoader::getInstance().rememberShaderSelection(packName, enabled);
+    };
+
     mScreen.setHost(std::move(host));
 }
 
@@ -580,6 +630,16 @@ ShaderManagerScreen& ShaderManagerScreen::getInstance() {
 bool ShaderManagerScreen::visible() const {
     std::lock_guard lock(mMutex);
     return mScreen.visible();
+}
+
+bool ShaderManagerScreen::capturingKey() const {
+    std::lock_guard lock(mMutex);
+    return mScreen.capturingKey();
+}
+
+void ShaderManagerScreen::setAppliedShaderPack(std::string const& packName, bool enabled) {
+    std::lock_guard lock(mMutex);
+    mScreen.setAppliedShaderPack(packName, enabled);
 }
 
 void ShaderManagerScreen::setPointer(float x, float y) {

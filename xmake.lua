@@ -32,7 +32,7 @@ end
 
 target("RenderDragonShaderLoader") -- 改成你的模组名（只允许英文字母、数字、中划线）
     add_rules("@levibuildscript/linkrule")
-    add_rules("@levibuildscript/modpacker", {modVersion = "0.1.0-beta"})
+    add_rules("@levibuildscript/modpacker", {modVersion = "0.1.1-beta"})
     if is_plat("windows") then
         add_defines("NOMINMAX", "UNICODE")
         -- user32：前台窗口 / F9 诊断键；shell32：WM_DROPFILES 文件拖放；

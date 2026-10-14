@@ -17,7 +17,8 @@ struct ShaderPack; // 前向声明：真实包 -> 设置模型的映射（本期
 //   - 滑块的特色交互：未选中 = 名字在左、滑块在右；选中后滑块放大占满整个文本框。
 namespace renderdragon_shader_loader::ui {
 
-enum class SettingKind { Category, Bool, Slider, Enum, Color };
+// KeyBind = 「按一个键来绑定」的项（模组设置页的面板热键）。值直接存键名（如 G / NONE）。
+enum class SettingKind { Category, Bool, Slider, Enum, Color, KeyBind };
 
 // 设置项在版式里占半行（两列并排）还是整行。
 enum class SettingSpan { Half, Full };

@@ -8,27 +8,37 @@ custom shader parameters.
 
 > Target versions: **Minecraft Bedrock 1.26.40** (client) + **LeviLamina 26.40.x** (Windows x64)
 >
-> Current release: **0.1.0-beta** (pre-release; includes shader pack management and the parameter
+> Current release: **0.1.1-beta** (pre-release; includes shader pack management and the parameter
 > interface only, see "Not Implemented Yet" below)
 >
-> Import format: currently only `.zip` shader packs are supported. `.mcpack` is **not supported
-> yet**. To use a `.mcpack`, rename its extension to `.zip` before importing it.
+> Import format: `shaderpacks/` is read as `.zip`. Dropping a `.mcpack` onto the game window is
+> also supported: it is **renamed to `.zip` automatically** before importing (a `.mcpack` is a zip
+> container).
 
 ## Current Features
 
 ### Panel and Controls
 
 - Press `G` by default to open or close the shader management panel.
+- While typing in chat, a sign, an anvil, a book or a command block, the panel hotkey **steps
+  aside**: the key goes into the text box instead of opening the panel (and is not swallowed).
 - Browse the shader list with the mouse and drag the scrollbar. You can also drag a `.zip` shader
-  pack directly into the Minecraft window to import it.
+  or `.mcpack` shader pack directly into the Minecraft window to import it.
 - Shader changes are applied only after clicking Apply / Done. Clicking Cancel or pressing `Esc`
   discards the unapplied changes.
+- The Settings button at the bottom left opens the mod settings page: **rebind the panel hotkey**
+  (press a key to record it), force-enable Vibrant Visuals, auto-load the last used shader pack on
+  startup, and override the graphics mode manually.
+- The arrow keys move between the content area, the two rows of bottom buttons, the top bar
+  buttons (Import / Export / Reset) and the bottom-right transparency button; Enter acts as a left
+  click.
 
 ### Shader Pack Recognition and Import
 
 - The shader pack directory is `data/shaderpacks/` under the mod directory.
-- When importing through drag and drop or the import function, only `.zip` files are accepted.
-  `.mcpack` files are skipped and do not appear in the shader list.
+- When importing through drag and drop, `.zip` and `.mcpack` files are accepted. A dragged
+  `.mcpack` is stored as `<name>.zip`; a `.mcpack` placed in `data/shaderpacks/` manually is
+  renamed the same way when the directory is scanned.
 - `.zip` files are automatically extracted to `data/generated/<pack-name>/src/` as working copies.
 - An already extracted shader directory can also be placed manually in `data/shaderpacks/`, but it
   must contain `project.json` or `shaders.properties` to be recognized.
@@ -41,6 +51,10 @@ custom shader parameters.
   current selection.
 - The graphics mode is switched automatically based on the output type: deferred output uses
   Vibrant Visuals, and forward output uses Fancy.
+  (The detection looks for `Deferred*` in the output file names, so it is a heuristic; the
+  "Graphics mode override" entry in the settings page lets the player correct it.)
+- The shader pack that was enabled when the panel was closed / the game exited is remembered and
+  loaded again on the next startup (can be turned off in the settings page).
 - The custom parameter interface follows Iris conventions: it has category and parameter pages,
   with both two-column and full-width layouts.
 - Supported parameter controls include sliders, checkboxes, enums, and colors. Sliders expand on
@@ -58,6 +72,8 @@ custom shader parameters.
 | `/shader ui` | Open or close the shader management panel directly, without using the hotkey. |
 | `/shader key` | Show the current hotkey used to open the panel. |
 | `/shader key <key>` | Change the panel hotkey. Supports `A-Z`, `0-9`, `F1-F12`, `SPACE`, `TAB`, `UP`, and similar names. Use `NONE` to disable the hotkey. |
+| `/shader vibrant` | Show the state of "force enable Vibrant Visuals". |
+| `/shader vibrant <on\|off>` | Toggle force-enabling Vibrant Visuals (some servers lock the graphics mode; this bypasses the check). |
 | `/shader list` | List recognized shader packs in chat, including the number of parsed parameters for each pack. |
 | `/shader rollback` | Disable material redirection and restore vanilla materials. This succeeds only when hot reload support is available. |
 
