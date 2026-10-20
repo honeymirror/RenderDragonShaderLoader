@@ -7,37 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.2.0-beta
 
+首个公开预发布之后的兼容性与参数完善版本，重点补齐 Native IO 预检、结构化兼容报告、
+参数映射、运行时 uniform、失败保护以及配置管理修复。
+
 ### Added
 
-- Native IO compatibility preflight with structured error, warning, override,
-  and mapping reports.
-- Source-stage attribute mappings and binary-stage buffer/pass output mappings,
-  with atomic validation before publish.
-- Compatibility report export and a unified Native IO regression command.
-- Optional albite backend validation for a full 54-material deferred pack.
+- 兼容性预检页新增结构化报告，可滚动查看 error、warning、overridden issue 和映射详情。
+- 增加兼容报告导出；编译路径与预编译路径共用同一份报告。
+- 支持源码阶段的 attribute 映射，以及二进制阶段的 buffer、pass output 映射和覆盖规则。
+- 补齐 attribute、buffer、pass output signature 与 override 的负向测试。
+- 增加统一的 Native IO 回归命令，并支持可选的 albite 后端验证。
+- 支持 54 材质完整延迟光影包的后端兼容性检查。
+- 完善光影自定义参数：支持 `options.json`、分类、显示语言、滑块、开关、枚举、
+  编译宏映射和运行时 `vec4` uniform patch。
+- 新增 [CUSTOM-PARAMETERS.md](CUSTOM-PARAMETERS.md)，说明参数声明、源码接入、
+  中英文名称、运行时 uniform、默认值和发布前检查。
+- 新增兼容性报告、配置管理和参数元数据相关回归测试。
 
 ### Changed
 
-- Build metadata is reproducible with deterministic PE timestamps and a stable
-  embedded PDB name.
-- Configuration names are temporarily limited to English/ASCII input while IME
-  handling remains frozen.
+- 编译、预编译和缓存恢复统一使用结构化兼容状态；失败时不再提交 applied 状态，
+  也不会替换上一份可用产物。
+- 缓存命中时继续保留 `meta.json` 中已应用的映射详情。
+- Windows 构建使用可复现的 PE 时间戳和稳定的 PDB 名称。
+- 配置名称暂时只接受英文 / ASCII 输入；光影参数通过包内语言文件仍可显示中文。
 
 ### Fixed
 
-- Compatibility page no longer alternates between empty and valid preset output.
-- Cached compilations preserve applied mapping details in `meta.json`.
-- Existing mapped outputs recover their report even when the old metadata array
-  is empty.
-- Resetting a configuration reloads the active named preset and no longer shows
-  it as `Custom`.
-- Deleting the active configuration restores fallback values without polluting
-  the fallback settings file.
+- 修复兼容性页面在“无编译产物”和“无错误项”之间反复变化的问题。
+- 修复旧缓存元数据缺少映射数组时无法恢复兼容报告的问题。
+- 修复重置配置后仍显示为 `Custom`、没有回到当前命名配置的问题。
+- 修复删除当前配置后参数残留在默认配置中的问题。
+- 修复失败校验可能影响 applied 状态或覆盖上一份可用产物的问题。
 
 ### Security
 
-- Release packaging excludes PDB files and scans packaged text/binary files for
-  local absolute paths before creating an archive.
+- 发布打包会排除 PDB 和日志，并扫描包内文本及二进制中的本机绝对路径。
 
 ## 0.1.1-beta
 

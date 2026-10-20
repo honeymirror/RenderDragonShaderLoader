@@ -21,3 +21,6 @@ ExamplePack/
 `merge_source` 用 `"vanilla"`：包里自带一个 `vanilla/` 子目录放原版材质（推荐，部分仓库式光影包采用这种方式）；
 要是包里没有，模组编译前会把游戏安装目录的 `data/renderer/materials` 硬链接进**编译暂存目录**
 （不会写进 `shaders/`）。
+
+参数声明、源码宏保护、分类、中文名称和运行时 uniform 的完整写法见
+[`../../CUSTOM-PARAMETERS.md`](../../CUSTOM-PARAMETERS.md)。

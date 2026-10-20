@@ -45,6 +45,8 @@
 - 自定义参数界面采用 Iris 风格：分类页和参数页两层结构，支持两列并排和整行两种版式。
 - 参数控件包含滑块、复选框、枚举和颜色；滑块悬停后会展开，滑标可以拖动。
 - 参数来自光影包自己的 `options.json` 或 `shaders.properties`；光影包没有可识别声明时会显示空状态。
+- 参数声明、源码接入、分类、中文名称和运行时 uniform 的完整写法见
+  [`CUSTOM-PARAMETERS.md`](CUSTOM-PARAMETERS.md)。
 - 顶栏提供「导入 / 导出 / 重置」，状态提示会在 3 秒后淡出，并带有 Iris 同款点击音效。
 
 ### `/shader` 指令
@@ -99,12 +101,21 @@ samples/        示例光影包（ExamplePack）
 
 ## 第三方
 
+### 设计与兼容性参考
+
 - [Iris](https://github.com/IrisShaders/Iris)：参考其光影参数界面、参数分类方式、滑块交互和点击音效表现。
 - [OptiFine](https://optifine.net/)：参考其 `shaders.properties` 参数表达方式和 `shaderpacks` 目录约定。
 - [BetterRenderDragon](https://github.com/QYCottage/BetterRenderDragon)：参考材质热重载思路。
 - [Lamium](https://github.com/amatouhake/Lamium)：**本模组 UI 参考了该项目**，包括自绘屏幕和输入接管实现。
 
-以上项目均未随本仓库分发第三方二进制或资源文件，仅作为设计与实现参考。
+以上项目未随本仓库分发第三方二进制或资源文件，仅作为设计与实现参考。
+
+### 编译工具链与随包分发
+
+- [Lazurite](https://github.com/veka0/lazurite)：LGPL-3.0，作为光影工程编译入口。
+- [lazurite-albite-compat](https://github.com/bambosan/lazurite-albite-compat)：LGPL-3.0，
+  兼容 albite 后端的 Lazurite 源码树，位于 `toolchain/lazurite-albite-compat/`。
+- [Albite](https://github.com/bambosan/albite)：MIT License，作为可选的材质编译后端。
 
 - 许可：本项目使用 LGPL-3.0，见 [`LICENSE`](LICENSE)。
 - 第三方项目、依赖与分发说明见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。

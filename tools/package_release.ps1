@@ -34,7 +34,7 @@ Copy-Item -LiteralPath (Join-Path $source "manifest.json") -Destination $stage
 Copy-Item -LiteralPath (Join-Path $source "lang") -Destination $stage -Recurse
 Copy-Item -LiteralPath (Join-Path $source "toolchain") -Destination $stage -Recurse
 Copy-Item -LiteralPath (Join-Path $source "config") -Destination $stage -Recurse
-foreach ($name in @("README.md", "README_EN.md", "LICENSE", "THIRD_PARTY_NOTICES.md")) {
+foreach ($name in @("README.md", "README_EN.md", "CUSTOM-PARAMETERS.md", "LICENSE", "THIRD_PARTY_NOTICES.md")) {
     $file = Join-Path $project $name
     if (Test-Path -LiteralPath $file) {
         Copy-Item -LiteralPath $file -Destination $stage
@@ -57,6 +57,7 @@ Highlights:
 - Structured Native IO compatibility reports and exports.
 - Attribute, buffer, and pass-output mapping support.
 - Deferred and forward compatibility regressions with optional albite validation.
+- A complete custom-parameter author guide in `CUSTOM-PARAMETERS.md`.
 - Reproducible Windows build metadata.
 - Configuration reset/delete fixes.
 

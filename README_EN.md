@@ -61,6 +61,9 @@ custom shader parameters.
   hover, and their handles can be dragged.
 - Parameters come from the pack's own `options.json` or `shaders.properties`. If no supported
   declarations are present, the interface shows an empty state.
+- See [`CUSTOM-PARAMETERS.md`](CUSTOM-PARAMETERS.md) for the complete parameter schema, source
+  integration rules, groups, localization, and runtime uniform setup. The guide is in Simplified
+  Chinese.
 - The top bar provides Import, Export, and Reset. Status messages fade out after 3 seconds, and the
   interface uses Iris-style click sounds.
 
@@ -124,6 +127,8 @@ samples/        Example shader pack (ExamplePack)
 
 ## Third-Party References
 
+### Design and Compatibility References
+
 - [Iris](https://github.com/IrisShaders/Iris): reference for the shader parameter UI, parameter
   categories, slider interaction, and click sound behavior.
 - [OptiFine](https://optifine.net/): reference for `shaders.properties` parameter expressions and
@@ -135,6 +140,13 @@ samples/        Example shader pack (ExamplePack)
 
 No third-party binaries or resources from these projects are distributed with this repository.
 They are listed only as design and implementation references.
+
+### Build Toolchain and Bundled Components
+
+- [Lazurite](https://github.com/veka0/lazurite): LGPL-3.0. Used as the shader-project build entry.
+- [lazurite-albite-compat](https://github.com/bambosan/lazurite-albite-compat): LGPL-3.0. The
+  albite-compatible Lazurite source tree under `toolchain/lazurite-albite-compat/`.
+- [Albite](https://github.com/bambosan/albite): MIT License. Optional material compiler backend.
 
 - License: this project is licensed under LGPL-3.0. See [`LICENSE`](LICENSE).
 - Third-party projects, dependencies, and distribution notes are listed in
