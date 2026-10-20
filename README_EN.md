@@ -9,7 +9,7 @@ custom shader parameters.
 > Target versions: **Minecraft Bedrock 1.26.51** (client) + **LeviLamina 26.51.x** (Windows x64)
 >
 > Current release: **0.2.0-beta** (pre-release; includes compatibility reports, Native IO mappings,
-> interface only, see "Not Implemented Yet" below)
+> reproducible builds, and configuration management fixes)
 >
 > Import format: `shaderpacks/` is read as `.zip`. Dropping a `.mcpack` onto the game window is
 > also supported: it is **renamed to `.zip` automatically** before importing (a `.mcpack` is a zip
@@ -42,8 +42,8 @@ custom shader parameters.
 - `.zip` files are automatically extracted to `data/generated/<pack-name>/src/` as working copies.
 - An already extracted shader directory can also be placed manually in `data/shaderpacks/`, but it
   must contain `project.json` or `shaders.properties` to be recognized.
-- This version only loads prebuilt `.material.bin` files included in the shader pack. A pack can be
-  used only if it contains compiled output.
+- Packs can load prebuilt `.material.bin` files directly or include source for the mod to compile.
+  A source pack without output enters the compilation pipeline automatically.
 
 ### Shader List and Parameter Interface
 
@@ -59,8 +59,8 @@ custom shader parameters.
   with both two-column and full-width layouts.
 - Supported parameter controls include sliders, checkboxes, enums, and colors. Sliders expand on
   hover, and their handles can be dragged.
-- Parameters come from the real declarations in the shader pack's `shaders.properties`. If a pack
-  declares no parameters, the interface shows an empty state.
+- Parameters come from the pack's own `options.json` or `shaders.properties`. If no supported
+  declarations are present, the interface shows an empty state.
 - The top bar provides Import, Export, and Reset. Status messages fade out after 3 seconds, and the
   interface uses Iris-style click sounds.
 
@@ -83,7 +83,7 @@ custom shader parameters.
   `toolchain/shaderc.exe` through a serialized job queue with cancellation, timeout, and logs.
 - Parameter edits trigger material-level incremental compilation. Cache hits start no compiler
   process at all.
-- Outputs are written to `compiled.new/`, validated for magic, material format version 25, count,
+- Outputs are written to `compiled.new/`, validated for magic, target material format version 26, count,
   and `meta.json`, then atomically switched into `compiled/`. Old output stays under
   `compiled/.backup/`.
 - Packs may ship prebuilt `.material.bin` files, source for compilation, or both. Successful
@@ -91,12 +91,9 @@ custom shader parameters.
 - `rdloader.pack.json`, `options.json`, `variants.json`, and pack-local `lang/*.lang` are supported
   while keeping plain `.zip`, `.mcpack`, and `shaders.properties` compatibility.
 
-The hot reload implementation (`readFile` redirection + `reloadMaterial`) is present, but it has
-not been fully validated in game yet.
-
 ## Build
 
-Requirements: Windows x64 + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the LeviLamina 26.40.x
+Requirements: Windows x64 + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the LeviLamina 26.51.x
 SDK.
 
 ```bash

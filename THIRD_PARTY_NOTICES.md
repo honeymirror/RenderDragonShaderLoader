@@ -48,7 +48,8 @@ build the example pack; it retains its upstream copyright and license notice.
 
 本仓库随包分发 `toolchain/shaderc.exe`（BGFX）、`toolchain/albite`（MIT + DXC 运行库）和
 `toolchain/lazurite-albite-compat`（LGPL-3.0，含为 albite 增加 BGFX 预处理的修改），以及示例包使用的
-`bgfx_shader.sh`。Mirai 与 newb-x 的适配 zip 来自对应上游项目；许可证与版权以上游项目为准。
+`bgfx_shader.sh`。Mirai 与 newb-x 仅作为兼容性测试对象；当前公开源码仓库不包含它们的适配 ZIP，
+相关上游许可证与版权仍以原项目为准。
 
 其他第三方编译器或运行时组件不属于本仓库分发范围，除非在上表中明确列出。
 

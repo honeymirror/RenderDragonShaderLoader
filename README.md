@@ -30,11 +30,11 @@
 ### 光影包识别与导入
 
 - 光影包目录是模组目录下的 `data/shaderpacks/`。
-- 通过窗口拖放或导入功能添加时，当前只接受 `.zip` 文件；`.mcpack` 会被跳过，不会出现在光影列表中。
+- 通过窗口拖放或导入功能同时接受 `.zip` 和 `.mcpack`；`.mcpack` 会先改名为 `.zip` 再读取。
 - `.zip` 会被自动解压到 `data/generated/<包名>/src/` 作为工作副本。
 - 已解压的光影目录也可以手工放进 `data/shaderpacks/`，但目录内必须包含 `project.json` 或
   `shaders.properties` 才会计入光影列表。
-- 当前只加载光影包自带的 `.material.bin` 产物，因此一个包能否启用取决于它是否带有已编译产物。
+- 光影包可以自带 `.material.bin` 直接加载，也可以包含源码由模组编译；缺少产物且有可编译源码时会进入编译流程。
 
 ### 光影列表与参数界面
 
@@ -44,7 +44,7 @@
 - 关掉面板 / 退出游戏前用的光影会被记住，下次启动自动挂回去（可在设置页里关掉）。
 - 自定义参数界面采用 Iris 风格：分类页和参数页两层结构，支持两列并排和整行两种版式。
 - 参数控件包含滑块、复选框、枚举和颜色；滑块悬停后会展开，滑标可以拖动。
-- 参数来自光影包真实声明的 `shaders.properties`；光影包没有声明参数时会显示空状态。
+- 参数来自光影包自己的 `options.json` 或 `shaders.properties`；光影包没有可识别声明时会显示空状态。
 - 顶栏提供「导入 / 导出 / 重置」，状态提示会在 3 秒后淡出，并带有 Iris 同款点击音效。
 
 ### `/shader` 指令
@@ -65,7 +65,7 @@
 - 编译默认开启：调用 `lazurite build` + 随模组分发的 `toolchain/shaderc.exe`，串行任务队列，
   支持取消、超时和日志。
 - 参数改动触发材质级增量编译；缓存命中时不启动编译器进程。
-- 产物先写到 `compiled.new/`，校验 magic / 格式版本 25 / 数量与 `meta.json` 一致后，
+- 产物先写到 `compiled.new/`，校验 magic / 目标格式版本 26 / 数量与 `meta.json` 一致后，
   再原子切换到 `compiled/`；旧产物保存到 `compiled/.backup/`。
 - 包可以只带预编译 `.material.bin`，也可以带源码让模组编译。编译后由材质热重载挂回游戏。
 - 支持 `rdloader.pack.json` / `options.json` / `variants.json` / 包内 `lang/*.lang`，

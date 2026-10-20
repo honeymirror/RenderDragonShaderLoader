@@ -39,14 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release packaging excludes PDB files and scans packaged text/binary files for
   local absolute paths before creating an archive.
 
-## 0.1.0
-
-### Added
-
-- Initial LeviLamina client mod scaffold for Minecraft Bedrock 26.40 (LeviLamina 26.40.x).
-- Mod class with `load()` / `enable()` / `disable()` and config loading via `ll::config`.
-- `client` variant in `tooth.json` and CI workflows building/publishing the client package.
-
 ## 0.1.1-beta
 
 首个公开预发布（0.1.0-beta）之后的第一个更新：一批新功能 + 三个实机 bug 的修复。
@@ -76,3 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 热键名 ↔ 虚拟键码的映射抽成 `core/Hotkey`，界面录制与 `/shader key` 共用同一套表；
   配置版本升到 6（新增字段自动迁移）。
 - 渲染路线（花式 / 灵动视效）的自动判定仍是按产物文件名的启发式，但加了玩家手动覆盖兜底。
+
+## 0.1.0
+
+### Added
+
+- Initial LeviLamina client mod scaffold for Minecraft Bedrock 1.26.40 (LeviLamina 26.40.x).
+- Mod class with `load()` / `enable()` / `disable()` and config loading via `ll::config`.
+- `client` variant in `tooth.json` and CI workflows building/publishing the client package.
