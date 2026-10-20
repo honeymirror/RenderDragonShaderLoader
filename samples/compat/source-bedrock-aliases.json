@@ -1,0 +1,162 @@
+{
+  "catalogVersion": 1,
+  "targetProfile": "RenderDragon 1.26.51",
+  "attributes": {
+    "vaPosition": {
+      "status": "direct",
+      "semantic": "POSITION",
+      "bedrock": "a_position"
+    },
+    "vaNormal": {
+      "status": "direct",
+      "semantic": "NORMAL",
+      "bedrock": "a_normal"
+    },
+    "vaTangent": {
+      "status": "direct",
+      "semantic": "TANGENT",
+      "bedrock": "a_tangent"
+    },
+    "at_tangent": {
+      "status": "direct",
+      "semantic": "TANGENT",
+      "bedrock": "a_tangent"
+    },
+    "vaColor": {
+      "status": "direct",
+      "semantic": "COLOR0",
+      "bedrock": "a_color0"
+    },
+    "vaUV0": {
+      "status": "direct",
+      "semantic": "TEXCOORD0",
+      "bedrock": "a_texcoord0"
+    },
+    "vaUV1": {
+      "status": "direct",
+      "semantic": "TEXCOORD1",
+      "bedrock": "a_texcoord1"
+    },
+    "vaUV2": {
+      "status": "direct",
+      "semantic": "TEXCOORD2",
+      "bedrock": "a_texcoord2"
+    },
+    "mc_Entity": {
+      "status": "unsupported",
+      "reason": "Bedrock does not expose the Java block/entity identity attribute."
+    },
+    "mc_midTexCoord": {
+      "status": "unsupported",
+      "reason": "Bedrock does not expose the Java per-quad midpoint texture coordinate."
+    },
+    "at_midBlock": {
+      "status": "unsupported",
+      "reason": "Bedrock does not expose the Java per-block midpoint attribute."
+    }
+  },
+  "buffers": {
+    "depthtex0": {
+      "status": "contextual",
+      "bedrock": ["SceneDepth"],
+      "contexts": ["deferred_lighting", "post_process"],
+      "reason": "Bind only where the current Bedrock pass exposes SceneDepth."
+    },
+    "depthtex1": {
+      "status": "incompatible",
+      "bedrock": [],
+      "contexts": ["post_process"],
+      "reason": "No separate resolved/hand-depth texture equivalent is verified."
+    },
+    "gcolor": {
+      "status": "contextual",
+      "bedrock": ["ColorTexture", "RasterizedColor", "ColorMetalnessSubsurface"],
+      "contexts": ["deferred_lighting", "post_process"],
+      "reason": "The scene source depends on the current deferred pass."
+    },
+    "gdepth": {
+      "status": "contextual",
+      "bedrock": ["SceneDepth"],
+      "contexts": ["deferred_lighting", "post_process"]
+    },
+    "gnormal": {
+      "status": "contextual",
+      "bedrock": ["Normal", "NormalTexture"],
+      "contexts": ["deferred_lighting", "forward_lit"],
+      "reason": "Deferred and forward material families expose different normal textures."
+    },
+    "composite": {
+      "status": "contextual",
+      "bedrock": ["ColorTexture", "RasterizedColor"],
+      "contexts": ["post_process"],
+      "reason": "The final composite source must be selected by engine pass."
+    },
+    "shadowtex0": {
+      "status": "incompatible",
+      "bedrock": ["ShadowCascades"],
+      "contexts": ["shadow_lookup"],
+      "reason": "Iris shadow maps are 2D; Bedrock exposes a cascaded texture2DArray."
+    },
+    "shadowtex1": {
+      "status": "incompatible",
+      "bedrock": ["ShadowCascades"],
+      "contexts": ["shadow_lookup"],
+      "reason": "Iris shadow maps are 2D; Bedrock exposes a cascaded texture2DArray."
+    },
+    "shadowcolor0": {
+      "status": "incompatible",
+      "bedrock": [],
+      "contexts": ["shadow_lookup"],
+      "reason": "No matching Bedrock shadow-color target is verified."
+    },
+    "colortex0": {
+      "status": "contextual",
+      "bedrock": [],
+      "contexts": ["material_pass"],
+      "reason": "Pipeline role only; resolve to a named Bedrock buffer in pass context."
+    },
+    "colortex1": {
+      "status": "contextual",
+      "bedrock": [],
+      "contexts": ["material_pass"],
+      "reason": "Pipeline role only; resolve to a named Bedrock buffer in pass context."
+    },
+    "colortex2": {
+      "status": "contextual",
+      "bedrock": [],
+      "contexts": ["material_pass"],
+      "reason": "Pipeline role only; resolve to a named Bedrock buffer in pass context."
+    },
+    "colortex3": {
+      "status": "contextual",
+      "bedrock": [],
+      "contexts": ["material_pass"],
+      "reason": "Pipeline role only; Color3 output support is not verified."
+    }
+  },
+  "renderTargets": {
+    "colortex0": {
+      "status": "contextual",
+      "bedrock": "Color0",
+      "contexts": ["deferred_gbuffer", "forward_lit", "post_process"]
+    },
+    "colortex1": {
+      "status": "contextual",
+      "bedrock": "Color1",
+      "contexts": ["deferred_gbuffer"],
+      "reason": "Only attach when the Bedrock material pass expects this signature."
+    },
+    "colortex2": {
+      "status": "contextual",
+      "bedrock": "Color2",
+      "contexts": ["deferred_gbuffer"],
+      "reason": "Only attach when the Bedrock material pass expects this signature."
+    },
+    "colortex3": {
+      "status": "unsupported",
+      "bedrock": "Color3",
+      "contexts": ["deferred_gbuffer"],
+      "reason": "Color3 does not occur in either verified compatibility contract."
+    }
+  }
+}

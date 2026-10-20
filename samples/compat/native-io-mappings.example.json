@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "target": "RenderDragon-26.51",
+  "attributes": [
+    {
+      "id": "example-attribute-alias",
+      "material": "ExampleMaterial",
+      "pass": "ExamplePass",
+      "sourceSemantic": "CUSTOM_SEMANTIC",
+      "targetSemantic": "POSITION",
+      "sourceName": "a_custom_position",
+      "targetName": "a_position",
+      "reason": "Verified against the target engine material and pass"
+    }
+  ],
+  "buffers": [
+    {
+      "id": "example-buffer-alias",
+      "material": "ExampleMaterial",
+      "sourceBuffer": "CustomTexture",
+      "targetBuffer": "ColorTexture",
+      "reason": "Same type, format, access, and verified engine binding"
+    }
+  ],
+  "passes": [
+    {
+      "id": "example-output-alias",
+      "material": "ExampleMaterial",
+      "pass": "ExamplePass",
+      "targetRenderTargets": [
+        "Color0"
+      ],
+      "reason": "Verified against the target engine pass output signature"
+    }
+  ]
+}

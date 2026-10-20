@@ -1,0 +1,9 @@
+{
+    "name": "${modName}",
+    "entry": "${modFile}",
+    "version": "${modVersion}",
+    "type": "native",
+    "platform": "${modPlatform}",
+    "author": "honeymirror",
+    "description": "Shader pack manager and Iris-style custom shader settings UI for Minecraft Bedrock on LeviLamina"
+}

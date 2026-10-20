@@ -1,0 +1,11 @@
+{
+  "name": "RDL_SkyAmbient",
+  "type": "vec4",
+  "count": 1,
+  "default": [
+    2.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

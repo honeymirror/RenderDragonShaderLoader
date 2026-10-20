@@ -1,0 +1,11 @@
+{
+  "name": "RDL_AtmosphereHeight",
+  "type": "vec4",
+  "count": 1,
+  "default": [
+    100000.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

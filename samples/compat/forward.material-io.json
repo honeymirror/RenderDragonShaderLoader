@@ -1,0 +1,2568 @@
+{
+  "contractVersion": 1,
+  "summary": {
+    "materials": 13,
+    "passes": 41,
+    "variants": 926,
+    "shaders": 1852,
+    "buffers": 11,
+    "attributes": 9,
+    "varyings": 8,
+    "renderTargets": 1,
+    "samplerAliases": 11,
+    "errors": 0
+  },
+  "buffers": {
+    "GlintTexture": {
+      "name": "GlintTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "ItemInHandColorGlint"
+      ]
+    },
+    "LightMapTexture": {
+      "name": "LightMapTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "RenderChunk"
+      ]
+    },
+    "LightingTexture": {
+      "name": "LightingTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "Weather"
+      ]
+    },
+    "MatTexture": {
+      "name": "MatTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "ItemInHandTextured",
+        "RenderChunk"
+      ]
+    },
+    "MatTexture1": {
+      "name": "MatTexture1",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        1
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture"
+      ]
+    },
+    "MatTexture2": {
+      "name": "MatTexture2",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        2
+      ],
+      "materials": [
+        "ActorMultiTexture"
+      ]
+    },
+    "OcclusionTexture": {
+      "name": "OcclusionTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        1
+      ],
+      "materials": [
+        "Weather"
+      ]
+    },
+    "SeasonsTexture": {
+      "name": "SeasonsTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        2
+      ],
+      "materials": [
+        "RenderChunk"
+      ]
+    },
+    "SkyTexture": {
+      "name": "SkyTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "EndSky"
+      ]
+    },
+    "SunMoonTexture": {
+      "name": "SunMoonTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "SunMoon"
+      ]
+    },
+    "WeatherTexture": {
+      "name": "WeatherTexture",
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "access": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "bindingSlots": [
+        2
+      ],
+      "materials": [
+        "Weather"
+      ]
+    }
+  },
+  "attributes": {
+    "BLENDINDICES": {
+      "semantic": "BLENDINDICES",
+      "names": [
+        "boneId"
+      ],
+      "types": [
+        "int"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "COLOR0": {
+      "semantic": "COLOR0",
+      "names": [
+        "color0"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "NORMAL": {
+      "semantic": "NORMAL",
+      "names": [
+        "normal"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "POSITION": {
+      "semantic": "POSITION",
+      "names": [
+        "position"
+      ],
+      "types": [
+        "vec3"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD0": {
+      "semantic": "TEXCOORD0",
+      "names": [
+        "texcoord0"
+      ],
+      "types": [
+        "vec2"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD1": {
+      "semantic": "TEXCOORD1",
+      "names": [
+        "glintUV",
+        "lightmapUV"
+      ],
+      "types": [
+        "vec2",
+        "vec4"
+      ],
+      "materials": [
+        "ItemInHandColorGlint",
+        "RenderChunk"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD5": {
+      "semantic": "TEXCOORD5",
+      "names": [
+        "instanceData2"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD6": {
+      "semantic": "TEXCOORD6",
+      "names": [
+        "instanceData1"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD7": {
+      "semantic": "TEXCOORD7",
+      "names": [
+        "instanceData0"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    }
+  },
+  "varyings": {
+    "COLOR0": {
+      "semantic": "COLOR0",
+      "names": [
+        "color0"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "COLOR1": {
+      "semantic": "COLOR1",
+      "names": [
+        "clipPosition",
+        "fog",
+        "light"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "COLOR2": {
+      "semantic": "COLOR2",
+      "names": [
+        "fog"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "COLOR3": {
+      "semantic": "COLOR3",
+      "names": [
+        "clipPosition",
+        "light",
+        "worldPosition"
+      ],
+      "types": [
+        "vec4"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD0": {
+      "semantic": "TEXCOORD0",
+      "names": [
+        "texcoord0"
+      ],
+      "types": [
+        "vec2"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD1": {
+      "semantic": "TEXCOORD1",
+      "names": [
+        "lightmapUV",
+        "occlusionUV"
+      ],
+      "types": [
+        "vec2"
+      ],
+      "materials": [
+        "RenderChunk",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD2": {
+      "semantic": "TEXCOORD2",
+      "names": [
+        "ditheringAndMaskTinting",
+        "glintUV",
+        "layerUv",
+        "occlusionHeight"
+      ],
+      "types": [
+        "float",
+        "vec2",
+        "vec4"
+      ],
+      "materials": [
+        "ActorGlint",
+        "ItemInHandColorGlint",
+        "RenderChunk",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    },
+    "TEXCOORD3": {
+      "semantic": "TEXCOORD3",
+      "names": [
+        "worldPos"
+      ],
+      "types": [
+        "vec3"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "AlphaTest",
+        "DepthOnlyAlphaTest",
+        "DepthOnlyOpaque",
+        "Opaque",
+        "Transparent"
+      ]
+    }
+  },
+  "renderTargets": {
+    "Color0": {
+      "name": "Color0",
+      "signatures": [
+        "0x4BA175A2"
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint",
+        "ActorMultiTexture",
+        "Clouds",
+        "EndSky",
+        "ItemInHandColor",
+        "ItemInHandColorGlint",
+        "ItemInHandTextured",
+        "RenderChunk",
+        "Sky",
+        "Stars",
+        "SunMoon",
+        "Weather"
+      ],
+      "passes": [
+        "Actor/AlphaTest",
+        "Actor/DepthOnlyOpaque",
+        "Actor/Opaque",
+        "Actor/Transparent",
+        "ActorGlint/AlphaTest",
+        "ActorGlint/DepthOnlyOpaque",
+        "ActorGlint/Opaque",
+        "ActorGlint/Transparent",
+        "ActorMultiTexture/AlphaTest",
+        "ActorMultiTexture/DepthOnlyOpaque",
+        "ActorMultiTexture/Opaque",
+        "ActorMultiTexture/Transparent",
+        "Clouds/Transparent",
+        "EndSky/Opaque",
+        "ItemInHandColor/AlphaTest",
+        "ItemInHandColor/Opaque",
+        "ItemInHandColor/Transparent",
+        "ItemInHandColorGlint/AlphaTest",
+        "ItemInHandColorGlint/Opaque",
+        "ItemInHandColorGlint/Transparent",
+        "ItemInHandTextured/AlphaTest",
+        "ItemInHandTextured/Opaque",
+        "ItemInHandTextured/Transparent",
+        "RenderChunk/AlphaTest",
+        "RenderChunk/Opaque",
+        "RenderChunk/Transparent",
+        "Sky/Opaque",
+        "Stars/Transparent",
+        "SunMoon/Transparent",
+        "Weather/Transparent"
+      ]
+    }
+  },
+  "samplerAliases": [
+    {
+      "uniform": "s_Glint",
+      "buffer": "GlintTexture",
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "ItemInHandColorGlint"
+      ]
+    },
+    {
+      "uniform": "s_LightMap",
+      "buffer": "LightMapTexture",
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "RenderChunk"
+      ]
+    },
+    {
+      "uniform": "s_Lighting",
+      "buffer": "LightingTexture",
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "Weather"
+      ]
+    },
+    {
+      "uniform": "s_Mat",
+      "buffer": "MatTexture",
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "materials": [
+        "ItemInHandTextured",
+        "RenderChunk"
+      ]
+    },
+    {
+      "uniform": "s_Mat",
+      "buffer": "MatTexture1",
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "materials": [
+        "Actor",
+        "ActorGlint"
+      ]
+    },
+    {
+      "uniform": "s_Mat",
+      "buffer": "MatTexture2",
+      "bindingSlots": [
+        0,
+        1,
+        2
+      ],
+      "materials": [
+        "ActorMultiTexture"
+      ]
+    },
+    {
+      "uniform": "s_Occlusion",
+      "buffer": "OcclusionTexture",
+      "bindingSlots": [
+        1
+      ],
+      "materials": [
+        "Weather"
+      ]
+    },
+    {
+      "uniform": "s_Seasons",
+      "buffer": "SeasonsTexture",
+      "bindingSlots": [
+        2
+      ],
+      "materials": [
+        "RenderChunk"
+      ]
+    },
+    {
+      "uniform": "s_Sky",
+      "buffer": "SkyTexture",
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "EndSky"
+      ]
+    },
+    {
+      "uniform": "s_SunMoon",
+      "buffer": "SunMoonTexture",
+      "bindingSlots": [
+        0
+      ],
+      "materials": [
+        "SunMoon"
+      ]
+    },
+    {
+      "uniform": "s_Weather",
+      "buffer": "WeatherTexture",
+      "bindingSlots": [
+        2
+      ],
+      "materials": [
+        "Weather"
+      ]
+    }
+  ],
+  "materials": {
+    "Actor": {
+      "version": 26,
+      "buffers": {
+        "MatTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "MatTexture1": {
+          "bindingSlot": 1,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "BLENDINDICES": [
+          "int"
+        ],
+        "COLOR0": [
+          "vec4"
+        ],
+        "NORMAL": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "ActorGlint": {
+      "version": 26,
+      "buffers": {
+        "MatTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "MatTexture1": {
+          "bindingSlot": 1,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "BLENDINDICES": [
+          "int"
+        ],
+        "COLOR0": [
+          "vec4"
+        ],
+        "NORMAL": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD2": [
+          "vec4"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "ActorMultiTexture": {
+      "version": 26,
+      "buffers": {
+        "MatTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "MatTexture1": {
+          "bindingSlot": 1,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "MatTexture2": {
+          "bindingSlot": 2,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "BLENDINDICES": [
+          "int"
+        ],
+        "COLOR0": [
+          "vec4"
+        ],
+        "NORMAL": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "BLENDINDICES",
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "Clouds": {
+      "version": 26,
+      "buffers": {},
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "EndSky": {
+      "version": 26,
+      "buffers": {
+        "SkyTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "ItemInHandColor": {
+      "version": 26,
+      "buffers": {},
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "NORMAL": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "ItemInHandColorGlint": {
+      "version": 26,
+      "buffers": {
+        "GlintTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "NORMAL": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD1": [
+          "vec4"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD2": [
+          "vec4"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "ItemInHandTextured": {
+      "version": 26,
+      "buffers": {
+        "MatTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "NORMAL": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "RenderChunk": {
+      "version": 26,
+      "buffers": {
+        "LightMapTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "MatTexture": {
+          "bindingSlot": 1,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "SeasonsTexture": {
+          "bindingSlot": 2,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD1": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "COLOR2": [
+          "vec4"
+        ],
+        "COLOR3": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD1": [
+          "vec2"
+        ],
+        "TEXCOORD2": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "AlphaTest": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyAlphaTest": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR2",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "DepthOnlyOpaque": {
+          "renderTargets": [],
+          "outputBindingSignature": "0x00000000",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR2",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR2",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        },
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "COLOR2",
+            "COLOR3",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "Sky": {
+      "version": 26,
+      "buffers": {},
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "Opaque": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "Stars": {
+      "version": 26,
+      "buffers": {},
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "SunMoon": {
+      "version": 26,
+      "buffers": {
+        "SunMoonTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "TEXCOORD0",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    },
+    "Weather": {
+      "version": 26,
+      "buffers": {
+        "LightingTexture": {
+          "bindingSlot": 0,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "OcclusionTexture": {
+          "bindingSlot": 1,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        },
+        "WeatherTexture": {
+          "bindingSlot": 2,
+          "type": "texture2D",
+          "format": "float",
+          "access": "readonly",
+          "unorderedAccess": false
+        }
+      },
+      "attributes": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "POSITION": [
+          "vec3"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD5": [
+          "vec4"
+        ],
+        "TEXCOORD6": [
+          "vec4"
+        ],
+        "TEXCOORD7": [
+          "vec4"
+        ]
+      },
+      "varyings": {
+        "COLOR0": [
+          "vec4"
+        ],
+        "COLOR1": [
+          "vec4"
+        ],
+        "TEXCOORD0": [
+          "vec2"
+        ],
+        "TEXCOORD1": [
+          "vec2"
+        ],
+        "TEXCOORD2": [
+          "float"
+        ],
+        "TEXCOORD3": [
+          "vec3"
+        ]
+      },
+      "passes": {
+        "Transparent": {
+          "renderTargets": [
+            "Color0"
+          ],
+          "outputBindingSignature": "0x4BA175A2",
+          "attributes": [
+            "COLOR0",
+            "POSITION",
+            "TEXCOORD0",
+            "TEXCOORD5",
+            "TEXCOORD6",
+            "TEXCOORD7"
+          ],
+          "varyings": [
+            "COLOR0",
+            "COLOR1",
+            "TEXCOORD0",
+            "TEXCOORD1",
+            "TEXCOORD2",
+            "TEXCOORD3"
+          ]
+        }
+      }
+    }
+  }
+}

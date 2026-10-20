@@ -1,0 +1,26 @@
+{
+  "rulesVersion": 1,
+  "defaultContexts": ["material_pass"],
+  "rules": [
+    {
+      "id": "gbuffers",
+      "programPatterns": ["gbuffers_*"],
+      "contexts": ["deferred_gbuffer", "forward_lit"]
+    },
+    {
+      "id": "shadow",
+      "programPatterns": ["shadow", "shadowcomp*"],
+      "contexts": ["shadow_lookup"]
+    },
+    {
+      "id": "deferred",
+      "programPatterns": ["deferred", "deferred_*", "deferred*"],
+      "contexts": ["deferred_lighting"]
+    },
+    {
+      "id": "post",
+      "programPatterns": ["composite*", "final*", "prepare*"],
+      "contexts": ["post_process"]
+    }
+  ]
+}

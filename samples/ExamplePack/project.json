@@ -1,0 +1,9 @@
+{
+  "base_profile": {
+    "platforms": ["Direct3D_SM65"],
+    "merge_source": ["vanilla"],
+    "include_patterns": ["materials/Bloom"],
+    "exclude_patterns": ["include/*", "vanilla/*"],
+    "include_search_paths": ["include", "include/bgfx"]
+  }
+}

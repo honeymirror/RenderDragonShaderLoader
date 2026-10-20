@@ -1,0 +1,11 @@
+{
+  "name": "RDL_BlockAmbient",
+  "type": "vec4",
+  "count": 1,
+  "default": [
+    0.01,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "RDL_CamAltitude",
+  "type": "vec4",
+  "count": 1,
+  "default": [
+    100.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

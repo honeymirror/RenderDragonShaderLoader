@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "target": "RenderDragon-26.51",
+  "allow": [
+    {
+      "id": "unused-scroll-01",
+      "code": "pass.output-signature-mismatch",
+      "material": "MissingMaterial01",
+      "pass": "MissingPass01",
+      "reason": "Scrollable report fixture 01"
+    },
+    {
+      "id": "unused-scroll-02",
+      "code": "pass.output-signature-mismatch",
+      "material": "MissingMaterial02",
+      "pass": "MissingPass02",
+      "reason": "Scrollable report fixture 02"
+    },
+    {
+      "id": "unused-scroll-03",
+      "code": "pass.output-signature-mismatch",
+      "material": "MissingMaterial03",
+      "pass": "MissingPass03",
+      "reason": "Scrollable report fixture 03"
+    },
+    {
+      "id": "unused-scroll-04",
+      "code": "pass.output-signature-mismatch",
+      "material": "MissingMaterial04",
+      "pass": "MissingPass04",
+      "reason": "Scrollable report fixture 04"
+    },
+    {
+      "id": "unused-scroll-05",
+      "code": "pass.output-signature-mismatch",
+      "material": "MissingMaterial05",
+      "pass": "MissingPass05",
+      "reason": "Scrollable report fixture 05"
+    },
+    {
+      "id": "unused-scroll-06",
+      "code": "pass.output-signature-mismatch",
+      "material": "MissingMaterial06",
+      "pass": "MissingPass06",
+      "reason": "Scrollable report fixture 06"
+    }
+  ]
+}

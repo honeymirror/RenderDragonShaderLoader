@@ -1,0 +1,336 @@
+#pragma once
+
+#include <chrono>
+#include <filesystem>
+#include <functional>
+#include <string>
+#include <string_view>
+
+#include "core/NativeIOReport.h"
+#include "core/ShaderPack.h"
+#include "ui/UiCanvas.h"
+#include "ui/UiLayout.h"
+#include "ui/UiSettings.h"
+
+// 界面的「核心」：状态机 + 版式 + 交互 + 绘制指令，全部不依赖游戏类型，
+// 因此可以被两个宿主共用：
+//   - 游戏内：ShaderManagerScreen（占位屏幕 / 事件 / hook / 编译服务）；
+//   - 独立预览器：tools/ui_preview（Win32 窗口 + GDI），不启动游戏即可调界面。
+// 数据源是 core/ShaderPack 的 ShaderPackStore（同样不依赖游戏）。
+namespace renderdragon_shader_loader::ui {
+
+enum class CompileRequestResult {
+    Failed,
+    Queued,
+    AppliedImmediately,
+};
+
+struct CompatibilityReport {
+    bool        compiled       = false;
+    bool        ok             = false;
+    bool        overridesFound = false;
+    std::size_t materialCount  = 0;
+    std::string renderMode;
+    std::string detail;
+    NativeIOReport nativeIO;
+};
+
+enum class CompatibilityIssueFilter { Errors, Warnings, Overridden, Mappings };
+
+// UI 需要外部世界提供的能力，由宿主注入。
+struct ScreenHost {
+    std::function<std::string(std::string_view)>      translate;      // 文案（i18n）
+    // 游戏当前语言代码（如 en_US / zh_CN），用来挑光影包内的 lang 文件。
+    // 脱离游戏的预览器返回空字符串即可。
+    std::function<std::string()>                      locale;
+    std::function<void(std::string const&)>           log;            // 诊断日志（可空）
+    // 编译选中包。Queued 表示稍后由成功/失败回调收尾；
+    // AppliedImmediately 表示只修补了现有产物，没有异步编译回调。
+    std::function<CompileRequestResult(ShaderPack const&)> compile;
+    // 只读检查当前已编译产物的 material IO 契约，不启动编译。
+    std::function<CompatibilityReport(ShaderPack const&)> preflight;
+    // 把已经生成的完整兼容报告写到 data/reports/compatibility/<pack>.json。
+    // outPath 用于界面提示；返回 false 表示写盘失败或没有报告。
+    std::function<bool(ShaderPack const&, std::string const&, std::string&)> exportCompatibilityReport;
+    // 热重载材质。返回 false = 拒绝生效（例如设备没有灵动视效，延迟光影无法加载）。
+    std::function<bool(ShaderPack const&)>            reload;
+    std::function<void()>                             restoreVanilla; // 关掉光影：回到原版材质
+    std::function<void()>                             openFolder;     // 打开光影包目录
+    std::function<void(ShaderPack const&)>            openConfigurationFolder;
+    std::function<void()>                             rescanPacks;    // 重新扫描光影包目录
+    // 设置页：导入 / 导出配置文件（由宿主弹系统文件对话框）。
+    // suggestedName = 当前光影包的建议文件名（<包名>.txt）；导入时把读到的内容写进 outText。
+    // 返回 false = 用户取消或读写失败。
+    std::function<bool(std::string const& suggestedName, std::string& outText)>      importSettings;
+    std::function<bool(std::string const& suggestedName, std::string const& text)>   exportSettings;
+    std::function<void()>                             playClick;      // 按钮/调参数时的 UI 点击音效
+    std::function<void()>                             closeScreen;    // 关闭界面（游戏侧弹占位屏幕）
+    std::function<bool()>                             compiling;      // 是否正在编译
+    // 最近一次编译已完成，产物已经热重载生效（shaderc 路径当场生效，不需要重启游戏）。
+    std::function<bool()>                             restartPending;
+    std::function<std::string()>                      statusMessage;  // 编译状态/最近一次结果
+    std::function<bool()>                             statusFailed;   // 最近一次编译是否失败
+    // 模组设置页（底栏左下角「设置」按钮打开）：读写 config.json 里的开关与面板热键。
+    // key = "uiKey" / "forceVibrantVisuals" / "autoLoadLastShader" / "graphicsModeOverride"。
+    std::function<std::string(std::string const& key)>                    readSetting;
+    std::function<bool(std::string const& key, std::string const& value)> writeSetting;
+    // 「应用 / 完成」真正生效后回传：记住这次用的光影（空名字 = 回到原版材质），下次启动恢复。
+    std::function<void(std::string const& packName, bool enabled)>        rememberSelection;
+};
+
+enum class MouseButton { Left = 1, Right = 2 };
+
+class Screen {
+public:
+    // List = 光影包列表；Settings = Iris 风格的自定义参数设置界面；
+    // Preferences = 模组自己的设置页（面板热键 / 强制灵动视效 / 自动加载上次光影）。
+    enum class Mode { List, Settings, Preferences, Compatibility };
+
+    // 键盘焦点所在的那一组控件。方向键会在组内移动，到边界再跨组。
+    enum class Focus { Content, Header, Bottom, Preview, SettingsButton, CompatibilityButton };
+
+    void setHost(ScreenHost host) { mHost = std::move(host); }
+
+    [[nodiscard]] bool visible() const { return mVisible; }
+    void               setVisible(bool value);
+    void               open();  // 显示并回到列表页（重新记录选项快照）
+    void               close(); // 隐藏并通知宿主
+    // 宿主侧的占位屏幕已经由游戏自己弹出：只隐藏并丢弃暂存，不再回调 closeScreen，
+    // 否则会再排一次 pop，把游戏自己的下一层屏幕弹掉。
+    void dismiss();
+    // 重新扫描包目录，并按包名把当前选中项找回来（新丢进来的 zip 会出现在列表里）。
+    void refreshPacks();
+
+    // 引擎维护的指针位置（GUI 单位），用于绘制悬停效果。
+    // 点击命中用 handleMouseButton 传入的事件坐标，避免拿上一帧位置点错区域。
+    void setPointer(float x, float y);
+
+    // 绘制一帧。width/height 是 GUI 单位下的屏幕尺寸。
+    void render(Canvas& canvas, float width, float height);
+
+    // 输入。坐标必须是 GUI 单位（游戏侧负责用 mInvGuiScale 换算）。
+    bool handleKey(int keyCode); // Windows 虚拟键码
+    // 滚轮：正值向上、负值向下（游戏里 ActionWheel 的 buttonData）。
+    bool handleWheel(int delta);
+    void handleMouseMove(float x, float y, bool down);
+    // x/y 是本次事件的 GUI 单位坐标，点击命中的权威坐标。
+    bool handleMouseButton(MouseButton button, float x, float y, bool down);
+
+    // 编译进行中：整个界面锁死，宿主应吞掉输入。
+    [[nodiscard]] bool blocked() const;
+    // 设置页正在"录键位"：宿主别把按键当成开/关面板的热键。
+    [[nodiscard]] bool capturingKey() const { return mKeyCapture; }
+    // 「完成」在编译结束后的排队动作还没处理完。
+    [[nodiscard]] bool waitingToReturn() const { return mPending != Pending::None; }
+    [[nodiscard]] bool renamingConfiguration() const { return mPresetRenameActive; }
+    void appendConfigurationNameText(std::string_view utf8Text);
+    // 透明预览模式：只画右下角按钮，其余内容全隐藏。
+    [[nodiscard]] bool transparentPreview() const { return mTransparentPreview; }
+
+    [[nodiscard]] Layout const& layout() const { return mLayout; }
+    [[nodiscard]] SettingsLayout const& settingsLayout() const { return mSettingsLayout; }
+    [[nodiscard]] SettingsModel const&   settingsModel() const { return mSettings; }
+    [[nodiscard]] Mode          mode() const { return mMode; }
+    // 当前键盘焦点（测试 / 离线预览器用来断言方向键走位）。
+    [[nodiscard]] Focus focusZone() const { return mFocus; }
+    [[nodiscard]] int   focusIndex() const { return mFocusIndex; }
+
+    // 宿主告诉界面"现在真正生效的光影是哪个"（启动时按配置自动恢复后调用），
+    // 否则界面会以为是"原版材质"、把已经挂着的包显示成没启用。
+    void setAppliedShaderPack(std::string const& packName, bool enabled);
+
+private:
+    std::string tr(std::string_view key) const;
+    void        log(std::string const& line) const;
+    // Iris 同款：改参数 / 点按钮时播一次原版界面的点击音效。
+    void        click() const;
+    // ---- 底部状态提示（编译状态 / 我们自己的提示）的淡出 ----
+    // 文字一变就重新计时：显示满 3 秒后开始淡出，第 4 秒整消失；底色是透明的。
+    [[nodiscard]] std::string effectiveStatus() const;
+    [[nodiscard]] float       statusAlpha(std::string const& message) const;
+    void                      trackStatus(std::string const& message);
+
+    void drawHeader(Canvas& canvas, float width, float y, std::string const& title, std::string const& subtitle);
+    void drawContentBackdrop(Canvas& canvas, float width);
+    void drawBottomBar(Canvas& canvas, float width, float height);
+    void drawButton(Canvas& canvas, Rect const& r, std::string const& value, int index);
+    void drawPreviewButton(Canvas& canvas);
+    void drawCompatibilityButton(Canvas& canvas);
+    void drawCompatibility(Canvas& canvas, float width, float height);
+    void drawHoverTooltip(Canvas& canvas, std::string const& text);
+    // 左下角「设置」按钮（打开模组设置页）。
+    void drawSettingsButton(Canvas& canvas);
+    // Iris 风格右侧滚动条：贴屏幕最右缘，暗色轨道 + 浅灰滑块。
+    void drawScrollBar(Canvas& canvas, Rect const& track, Rect const& handle);
+    // 列表/参数页底部那行状态文字（编译进度、我们的提示等）。
+    void drawStatusLine(Canvas& canvas, float width, float y) const;
+    void drawList(Canvas& canvas, float width);
+    void drawSettings(Canvas& canvas, float width, float height);
+    void drawPresetBar(Canvas& canvas, SettingsLayout const& layout);
+    void drawPresetBrowser(Canvas& canvas, SettingsLayout const& layout);
+    bool handlePresetBrowserKey(int keyCode);
+    bool handlePresetBrowserBottomKey(int keyCode);
+    bool handlePresetRenameKey(int keyCode);
+    void activatePresetBrowserBottom(int index);
+    void beginPresetRename();
+    void deleteSelectedPreset();
+    void openSelectedPresetFolder();
+    void selectPresetByIndex(int index);
+    void saveCurrentConfiguration();
+    void resetCurrentConfiguration();
+    [[nodiscard]] int presetBrowserVisibleRows() const;
+    void              ensurePresetBrowserVisible();
+
+    void              activateRow(int index);
+    void              activateButton(int index);
+    void              adjustSelected(int delta);
+    void              selectRow(int delta);
+    // 底栏 / 右下角 / 左下角这几个「按钮区」共用的焦点判断与方向键移动。
+    [[nodiscard]] bool bottomFocused(int index) const {
+        return mFocus == Focus::Bottom && mFocusIndex == index;
+    }
+    [[nodiscard]] bool headerFocused(int index) const {
+        return mFocus == Focus::Header && mFocusIndex == index;
+    }
+    bool moveButtonFocus(int dx, int dy); // 在按钮区里按几何位置找邻居
+    void focusContent();                  // 焦点回到内容区
+    [[nodiscard]] int contentCount() const;
+    // 列表页：第 0 项是"光影：已启用/已禁用"开关，后面才是各个包。
+    [[nodiscard]] int  listFirstVisible() const;
+    [[nodiscard]] int  listIndexAtRow(int row) const;
+    [[nodiscard]] int  listMaxFirst() const;   // 列表能滚到的最靠后的"第一个可见包"
+    void               listSyncToRow();        // 让选中行重新落进可视窗口（键盘移动后用）
+    // 列表页滚动条的轨道 / 滑块（内容不溢出时都是空 rect）；绘制与拖动共用同一套几何。
+    void               listScrollBar(float width, Rect& track, Rect& handle) const;
+    void               updateScrollDrags(float y); // 按住滚动条拖动时按指针位置换算滚动量
+    void               toggleShaders();
+    void               snapshotParameters();
+    [[nodiscard]] bool pendingChanged() const;
+    bool               applyPending();
+    void               discardPending(bool refreshPacks = true);
+    void               notice(std::string text, bool failed);
+    [[nodiscard]] bool dirty() const;
+
+    // ---- 设置页（Iris 风格自定义参数界面）----
+    void enterSettings();                        // 进入设置页（载入模型 + 回到第一项）
+    void openSettingsCategory(int categoryIndex); // 打开某个分类（下一层）
+    void settingsGoBack();                        // 返回上一层；已在顶层就回列表页
+    void leaveSettings();                        // 返回列表页
+    bool handleSettingsKey(int keyCode);         // 设置页键盘；返回是否已处理
+    bool handleListKey(int keyCode);             // 列表页键盘（焦点在内容区时）
+    bool handleHeaderKey(int keyCode);           // 设置页顶栏四个按钮
+    bool handleBottomKey(int keyCode);           // 底栏五个按钮
+    bool handlePreviewKey(int keyCode);          // 右下角透明预览按钮
+    bool handleSettingsButtonKey(int keyCode);   // 左下角设置按钮
+    bool handleCompatibilityButtonKey(int keyCode);
+    bool handleCompatibilityKey(int keyCode);
+    bool handleKeyCapture(int keyCode);          // 设置页录键位
+    void moveSettingSelection(int dx, int dy);   // 方向键移动选择（跳过分类）
+    void clampSettingScroll();                   // 保证选中项可见
+    void updateSettingDrag(float x, float y);    // 拖动滑块：按指针 x 落到对应数值
+    void applySettingsEdits();                   // 「应用」：记下快照（编译暂停，只存盘/占位）
+    void discardSettingsEdits();                 // 「取消」：回到进设置页时的快照
+    [[nodiscard]] bool settingsDirty() const;
+    // 顶栏「导入 / 导出」：宿主负责弹文件对话框，这里只做序列化与回填。
+    void importSettingsFile();
+    void exportSettingsFile();
+    [[nodiscard]] std::string suggestedSettingsFileName() const; // <包名>.txt
+    int                       applySettingsText(std::string const& text); // 返回成功应用的条数
+
+    // ---- 模组设置页（Preferences）----
+    void enterPreferences();     // 打开设置页（按 config 生成模型）
+    void leavePreferences();     // 退出设置页（返回列表页）
+    void buildPreferencesModel();
+    void applyPreferences();     // 「应用」：把界面里的值写回 config.json
+    void discardPreferences();   // 「取消」：回到进来时的值
+    [[nodiscard]] bool preferencesDirty() const;
+
+    void enterCompatibility();
+    void leaveCompatibility();
+    void exportCompatibility();
+    [[nodiscard]] std::vector<NativeIOIssue> const& compatibilityIssues() const;
+
+    bool  mVisible     = false;
+    Mode  mMode        = Mode::List;
+    int   mPack        = 0;
+    int   mRow         = 0;  // List=包下标
+    // 键盘焦点：方向键在 Content（列表行/参数行）、Header（设置页顶栏 0..3）、
+    // Bottom（底栏 0..4）、Preview（右下角）、SettingsButton（左下角）之间移动。
+    Focus mFocus      = Focus::Content;
+    int   mFocusIndex = 0;
+    // 上一次停在哪个顶栏按钮（从内容区往上走时回到这里）。
+    int   mHeaderRestore = 0;
+    // 设置页正在等玩家按一个键来绑定（按 Esc 取消）。
+    bool  mKeyCapture = false;
+    float mMouseX      = -1.f;
+    float mMouseY      = -1.f;
+    bool  mMouseDown   = false;
+    // 最近一帧的屏幕尺寸（GUI 单位）：进设置页时要立刻算出一份可用版式，
+    // 否则"进入设置页"到"下一帧渲染"之间的第一次点击会命中空版式。
+    float mLastWidth  = 0.f;
+    float mLastHeight = 0.f;
+    // 右下角按钮切换“只看画面”模式：全透明，只保留按钮本身。
+    bool  mTransparentPreview = false;
+    std::string         mCompatibilityPack;
+    CompatibilityReport mCompatibility;
+    CompatibilityIssueFilter mCompatibilityFilter = CompatibilityIssueFilter::Errors;
+    float                     mCompatibilityScroll = 0.f;
+    float                     mCompatibilityMaxScroll = 0.f;
+    Rect                      mCompatibilityTabs[4];
+    Rect                      mCompatibilityViewport;
+    Rect                      mCompatibilityScrollTrack;
+    Rect                      mCompatibilityScrollHandle;
+    bool                      mCompatibilityScrollDragging = false;
+    float                     mCompatibilityGrabDy = 0.f;
+
+    Layout     mLayout;
+    ScreenHost mHost;
+
+    SettingsModel   mSettings;        // 当前设置页模型（本期 = makeDemoSettings 的假参数）
+    SettingsLayout  mSettingsLayout;  // 上一帧的设置页版式（命中测试用）
+    std::vector<int> mSettingsView;   // 当前这一页显示的项（模型下标）
+    int             mSettingsPage = -1; // -1 = 顶层分类页；否则是分类项的模型下标
+    int             mSettingsHover = -1; // 本帧鼠标悬停的项（滑块靠它展开）
+    int             mSettingIndex = -1;
+    float           mSettingScroll = 0.f;
+    bool            mSettingDragging = false;
+    // 滚动条按住拖动：mScrollGrabDy = 按下点相对滑块顶端的偏移，保证拖起来不跳。
+    bool            mSettingScrollDragging = false;
+    float           mScrollGrabDy          = 0.f;
+    bool            mListScrollDragging    = false;
+    float           mListGrabDy            = 0.f;
+    // 列表页的滚动位置：第一个可见包的下标。滚轮只动它，**不再连带改选中行**。
+    int             mListFirst = 0;
+    std::string     mSettingsSnapshot; // 进设置页时的值快照：判断有没有改动 / 取消时回退
+    bool              mPresetBrowserOpen = false;
+    int               mPresetBrowserIndex = 0;
+    int               mPresetBrowserFirst = 0;
+    bool              mPresetRenameActive = false;
+    std::string       mPresetRenameText;
+    std::vector<Rect> mPresetBrowserRects;
+    Rect              mPresetBrowserTrack;
+    Rect              mPresetBrowserHandle;
+
+    enum class Pending { None, BackToList };
+    Pending mPending = Pending::None;
+
+    // 打开界面时记录的选项快照，用来判断「完成」时要不要编译。
+    std::string mSnapshotPack;
+    std::string mSnapshot;
+
+    // 界面上的一切都只是"暂存"（mEnabled / mPack / 参数），只有「应用/完成」才落地；
+    // 下面两个是**当前已经生效**的状态，用来判断"有没有改动"和「取消」时回退。
+    // 默认关闭：进游戏就是原版材质，要玩家自己选一个光影再用（对齐 Iris 的初始态）。
+    bool mEnabled        = false; // 暂存：界面上的开关显示
+    bool mEnabledApplied = false; // 已生效：光影此刻是否真的开着
+    int  mAppliedPack    = -1;    // 已生效：此刻挂着的包（-1 = 原版材质）
+
+    // 界面自己的提示（比如"这个包还没有编译产物"）：非空时优先于宿主的编译状态显示。
+    std::string mNotice;
+    bool        mNoticeFailed = false;
+    // 状态提示的淡出计时：mStatusShownAt 是"当前这条文字"第一次出现的时刻。
+    std::string                            mStatusShown;
+    std::chrono::steady_clock::time_point  mStatusShownAt{};
+};
+
+} // namespace renderdragon_shader_loader::ui

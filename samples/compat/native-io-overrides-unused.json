@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "target": "RenderDragon-26.51",
+  "allow": [
+    {
+      "id": "intentionally-unused-gate-test",
+      "code": "pass.output-signature-mismatch",
+      "material": "MaterialThatDoesNotExist",
+      "pass": "PassThatDoesNotExist",
+      "reason": "Intentional negative test for the native IO compile gate"
+    }
+  ]
+}

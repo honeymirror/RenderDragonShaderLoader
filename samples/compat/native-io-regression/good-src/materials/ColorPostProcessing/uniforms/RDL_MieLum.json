@@ -1,0 +1,11 @@
+{
+  "name": "RDL_MieLum",
+  "type": "vec4",
+  "count": 1,
+  "default": [
+    0.5,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

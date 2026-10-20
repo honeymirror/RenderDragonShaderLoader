@@ -1,0 +1,78 @@
+{
+  "rulesVersion": 1,
+  "defaultContext": "material_pass",
+  "rules": [
+    {
+      "id": "depth-prepass",
+      "context": "depth_prepass",
+      "priority": 100,
+      "passPatterns": [
+        "DepthOnly*",
+        "GeometryPrepass*",
+        "DepthAndNormal",
+        "DoWaterSurfaceBuffer"
+      ],
+      "requireNoTargets": true
+    },
+    {
+      "id": "explicit-post-process",
+      "context": "post_process",
+      "priority": 95,
+      "materialPatterns": [
+        "Bloom",
+        "ColorPostProcessing",
+        "DeferredMixedResolutionSurfaceRadiance"
+      ]
+    },
+    {
+      "id": "deferred-lighting",
+      "context": "deferred_lighting",
+      "priority": 90,
+      "materialPatterns": [
+        "DeferredIndirectSpecular",
+        "DeferredMixedResolution",
+        "DeferredMixedResolutionCaustics",
+        "DeferredMixedResolutionLightingPrepass",
+        "DeferredShading",
+        "SkyProbeDeferredShading",
+        "PopulateVolume",
+        "VolumetricsShadows",
+        "ScreenSpaceReflections",
+        "LightClustering",
+        "WaterExtinction"
+      ]
+    },
+    {
+      "id": "forward-lit-color0",
+      "context": "forward_lit",
+      "priority": 70,
+      "passPatterns": [
+        "*ForwardPBR*",
+        "Opaque",
+        "Transparent",
+        "AlphaTest"
+      ],
+      "requireTargets": ["Color0"]
+    },
+    {
+      "id": "deferred-gbuffer-color1",
+      "context": "deferred_gbuffer",
+      "priority": 80,
+      "passPatterns": [
+        "*ForwardPBR*",
+        "GeometryPrepass*",
+        "Rasterized*",
+        "Opaque",
+        "Transparent",
+        "AlphaTest"
+      ],
+      "requireTargets": ["Color1"]
+    },
+    {
+      "id": "shadow-cascade-user",
+      "context": "shadow_lookup",
+      "priority": 50,
+      "requireBuffers": ["ShadowCascades"]
+    }
+  ]
+}

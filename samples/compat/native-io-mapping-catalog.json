@@ -1,0 +1,2463 @@
+{
+  "catalogVersion": 1,
+  "target": "RenderDragon-26.51",
+  "source": "RenderDragon-26.51.vanilla.material-io.json",
+  "summary": {
+    "materials": 157,
+    "attributes": 13,
+    "buffers": 121,
+    "renderTargets": 3
+  },
+  "attributes": {
+    "BLENDINDICES": {
+      "types": [
+        "int"
+      ],
+      "materialCount": 25,
+      "passCount": 117
+    },
+    "COLOR0": {
+      "types": [
+        "vec4"
+      ],
+      "materialCount": 74,
+      "passCount": 256
+    },
+    "NORMAL": {
+      "types": [
+        "vec3",
+        "vec4"
+      ],
+      "materialCount": 53,
+      "passCount": 227
+    },
+    "POSITION": {
+      "types": [
+        "vec2",
+        "vec3",
+        "vec4"
+      ],
+      "materialCount": 143,
+      "passCount": 398
+    },
+    "TANGENT": {
+      "types": [
+        "vec4"
+      ],
+      "materialCount": 31,
+      "passCount": 126
+    },
+    "TEXCOORD0": {
+      "types": [
+        "vec2"
+      ],
+      "materialCount": 121,
+      "passCount": 371
+    },
+    "TEXCOORD1": {
+      "types": [
+        "vec2",
+        "vec4"
+      ],
+      "materialCount": 20,
+      "passCount": 56
+    },
+    "TEXCOORD2": {
+      "types": [
+        "vec2"
+      ],
+      "materialCount": 2,
+      "passCount": 8
+    },
+    "TEXCOORD4": {
+      "types": [
+        "int",
+        "uvec4"
+      ],
+      "materialCount": 20,
+      "passCount": 52
+    },
+    "TEXCOORD5": {
+      "types": [
+        "vec4"
+      ],
+      "materialCount": 64,
+      "passCount": 231
+    },
+    "TEXCOORD6": {
+      "types": [
+        "vec4"
+      ],
+      "materialCount": 64,
+      "passCount": 231
+    },
+    "TEXCOORD7": {
+      "types": [
+        "vec4"
+      ],
+      "materialCount": 64,
+      "passCount": 231
+    },
+    "TEXCOORD8": {
+      "types": [
+        "vec4"
+      ],
+      "materialCount": 8,
+      "passCount": 27
+    }
+  },
+  "buffers": {
+    "AdaptedFrameAverageLuminance": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "r32f"
+      ],
+      "accessModes": [
+        "readwrite"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "AverageLuminance": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 5
+    },
+    "BeaconTexture": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "BilateralGrid": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readwrite"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "BiomeBlendingMap": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "BlitTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "BlurPyramidTexture": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "BrdfLUT": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 23
+    },
+    "CascadedShadowBuffer": {
+      "bindingSlots": [
+        7
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "r32f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "CascadedShadowBufferOut": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "r32f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "CausticsMultiplier": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "CausticsTexture": {
+      "bindingSlots": [
+        1,
+        10,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 31
+    },
+    "ColorMetalnessInput": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba8"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "ColorMetalnessOutput": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba8"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "ColorMetalnessSubsurface": {
+      "bindingSlots": [
+        0,
+        1,
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 11
+    },
+    "ColorTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "CracksTexture": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "CubeMap": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "textureCube"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "CurFrameLuminanceHistogram": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readwrite"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "CustomExposureCompensation": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "DiffuseLighting": {
+      "bindingSlots": [
+        1,
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 3
+    },
+    "DownsampledLogLuminance": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "EmissiveAmbientLinearRoughness": {
+      "bindingSlots": [
+        1,
+        2,
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "uint"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 11
+    },
+    "EmissiveLinearRoughnessInput": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "EmissiveLinearRoughnessOutput": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "Extends": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "FakeRWBuffer": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "rawBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readwrite"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "FilteredBilateralGrid": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture3D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "FilteredBilateralGridOutput": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture3D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "FlameAtlas": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "FramebufferDepth": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "GameColor": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "GbufferDepth": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "GbufferNormal": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "GbufferRoughness": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "uint"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "GlintTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "GlyphTexture": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "GpuEntryBuffer": {
+      "bindingSlots": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 34
+    },
+    "HDRi": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "HiZBuffer": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "HighlightTextureColor": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "HighlightTextureDepth": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "InputBufferMotionVectors": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "InputFinalColor": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "InputMip": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "InputTAAHistory": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "InputTex": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "InputTexture": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "LightMapTexture": {
+      "bindingSlots": [
+        0,
+        1,
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 7
+    },
+    "LightingTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "LowPrecisionWorldPositionInput": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "LowPrecisionWorldPositionOutput": {
+      "bindingSlots": [
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "MERSTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 16
+    },
+    "MatTexture": {
+      "bindingSlots": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "types": [
+        "texture2D",
+        "textureCube"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 53
+    },
+    "MatTexture0": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "MatTexture1": {
+      "bindingSlots": [
+        1,
+        2,
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 23
+    },
+    "MatTexture2": {
+      "bindingSlots": [
+        2,
+        3,
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 10
+    },
+    "Normal": {
+      "bindingSlots": [
+        2,
+        3,
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 11
+    },
+    "NormalInput": {
+      "bindingSlots": [
+        6
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rg16f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "NormalOutput": {
+      "bindingSlots": [
+        7
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rg16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "NormalTexture": {
+      "bindingSlots": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 16
+    },
+    "NormalsAndDepthLighting": {
+      "bindingSlots": [
+        4,
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "OcclusionTexture": {
+      "bindingSlots": [
+        1,
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "OutputMip": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "OutputTex": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba8"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "PBRData": {
+      "bindingSlots": [
+        1,
+        11,
+        12,
+        2,
+        3,
+        9
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 9
+    },
+    "ParallaxTexture": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "ParticleTexture": {
+      "bindingSlots": [
+        0,
+        2,
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 3
+    },
+    "PlaneIDInput": {
+      "bindingSlots": [
+        8
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "r32ui"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "PlaneIDOutput": {
+      "bindingSlots": [
+        9
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "r32ui"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "PointLightShadowTextureAtlas": {
+      "bindingSlots": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 27
+    },
+    "PreExposureLuminance": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "PreviousCascadedShadowBuffer": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "PreviousFrameAverageLuminance": {
+      "bindingSlots": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 42
+    },
+    "PreviousMip": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "PreviousMip2": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "PreviousReflectionBuffer": {
+      "bindingSlots": [
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "RasterColor": {
+      "bindingSlots": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "types": [
+        "texture2D",
+        "texture2DArray"
+      ],
+      "formats": [
+        "float",
+        "uint"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 14
+    },
+    "RasterizedColor": {
+      "bindingSlots": [
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "SSRTexture": {
+      "bindingSlots": [
+        7
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "ScatteringBuffer": {
+      "bindingSlots": [
+        10,
+        11,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 33
+    },
+    "ScatteringBufferIn": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "ScatteringBufferOut": {
+      "bindingSlots": [
+        1,
+        8
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 2
+    },
+    "SceneColor": {
+      "bindingSlots": [
+        2,
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "SceneDepth": {
+      "bindingSlots": [
+        3,
+        5,
+        6,
+        7,
+        8
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 13
+    },
+    "SceneTextureColor": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "SceneTextureDepth": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "ScreenSpaceWaterBackFaceDepthAndNormal": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "ScreenSpaceWaterFrontFaceDepthAndNormal": {
+      "bindingSlots": [
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "SeasonsTexture": {
+      "bindingSlots": [
+        1,
+        2,
+        5,
+        6
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 8
+    },
+    "SelectedBlocksOverlayTexture": {
+      "bindingSlots": [
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "ShadowCascades": {
+      "bindingSlots": [
+        1,
+        10,
+        12,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 33
+    },
+    "SimTexture": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "SkyAmbientSamples": {
+      "bindingSlots": [
+        10,
+        11,
+        13,
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "types": [
+        "texture3D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 15
+    },
+    "SkyTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "SpecularIBLRecords": {
+      "bindingSlots": [
+        10,
+        11,
+        12,
+        6,
+        7,
+        8,
+        9
+      ],
+      "types": [
+        "textureCubeArray"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 23
+    },
+    "SpecularLighting": {
+      "bindingSlots": [
+        8,
+        9
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 4
+    },
+    "SrcTextureCube": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "textureCube"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "SunMoonTexture": {
+      "bindingSlots": [
+        0,
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "TexColor": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "TextureShiftBufferData": {
+      "bindingSlots": [
+        3,
+        4
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 2
+    },
+    "ViewDirectionAndSplitMaskInput": {
+      "bindingSlots": [
+        10
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "ViewDirectionAndSplitMaskOutput": {
+      "bindingSlots": [
+        11
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "Volume": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2DArray"
+      ],
+      "formats": [
+        "rgba16f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "VoxelBuffer": {
+      "bindingSlots": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        6,
+        7,
+        8,
+        9
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 34
+    },
+    "WaterDepth": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "WeatherTexture": {
+      "bindingSlots": [
+        2,
+        5
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "WorldPositionInput": {
+      "bindingSlots": [
+        12
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba32f"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "WorldPositionOutput": {
+      "bindingSlots": [
+        13
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "rgba32f"
+      ],
+      "accessModes": [
+        "writeonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 1
+    },
+    "gBloomBuffer": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "gBloomOriginalInput": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "gRasterizedInput": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "gToneCurve": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 1
+    },
+    "txBuffer": {
+      "bindingSlots": [
+        0
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 6
+    },
+    "txBuffer1": {
+      "bindingSlots": [
+        1
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 6
+    },
+    "txBuffer2": {
+      "bindingSlots": [
+        2
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 5
+    },
+    "txBuffer3": {
+      "bindingSlots": [
+        3
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 3
+    },
+    "txBuffer4": {
+      "bindingSlots": [
+        4
+      ],
+      "types": [
+        "texture2D"
+      ],
+      "formats": [
+        "float"
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        false
+      ],
+      "materialCount": 2
+    },
+    "zBiomeInfoBuffer": {
+      "bindingSlots": [
+        11,
+        13,
+        14
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 4
+    },
+    "zLightLookupArray": {
+      "bindingSlots": [
+        1,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        7,
+        9
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly",
+        "readwrite"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 28
+    },
+    "zLights": {
+      "bindingSlots": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        8
+      ],
+      "types": [
+        "structBuffer"
+      ],
+      "formats": [
+        ""
+      ],
+      "accessModes": [
+        "readonly"
+      ],
+      "unorderedAccess": [
+        true
+      ],
+      "materialCount": 27
+    }
+  },
+  "renderTargets": {
+    "Color0": {
+      "signatures": [
+        "0x061654F8",
+        "0x4BA175A2",
+        "0xE5B60728"
+      ],
+      "materialCount": 150,
+      "passCount": 399
+    },
+    "Color1": {
+      "signatures": [
+        "0x061654F8",
+        "0x5615C006",
+        "0xE5B60728"
+      ],
+      "materialCount": 35,
+      "passCount": 70
+    },
+    "Color2": {
+      "signatures": [
+        "0xE5B60728"
+      ],
+      "materialCount": 19,
+      "passCount": 35
+    }
+  },
+  "verifiedAliases": []
+}

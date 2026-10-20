@@ -1,0 +1,11 @@
+{
+  "name": "RDL_CirrusHeight",
+  "type": "vec4",
+  "count": 1,
+  "default": [
+    580.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}
