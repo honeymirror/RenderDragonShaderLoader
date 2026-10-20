@@ -5,7 +5,7 @@
 在 Minecraft Bedrock（RenderDragon 渲染管线）里**管理第三方光影包**、**热重载**、
 并用 Iris 风格的界面调整光影自定义参数的 **LeviLamina 客户端模组**。
 
-> 目标版本：**Minecraft Bedrock 1.26.51**（客户端）+ **LeviLamina 26.51.x**（Windows x64）
+> 目标版本：**Minecraft Bedrock 1.26.51**（客户端）+ **LeviLamina 26.51.7**（Windows x64）
 > （材质格式：原版 v26，编译产物也写 v26；读取时兼容 v25 的旧包/旧缓存）
 >
 > 运行依赖：**Python 3.10 或更高版本**（推荐 Python 3.12+）
@@ -103,7 +103,7 @@
 ## 构建
 
 需要：Windows x64 + Python 3.10+ + xmake + Visual Studio（MSVC）+ LLVM（clang-cl）+
-LeviLamina 26.51.x SDK。
+LeviLamina 26.51.7 SDK。
 
 ```bash
 xmake f -y -p windows -a x64 -m release --target_type=client --mods_dir=<游戏 mods 目录>

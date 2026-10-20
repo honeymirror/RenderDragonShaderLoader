@@ -6,7 +6,7 @@ A **LeviLamina client mod** for Minecraft Bedrock (RenderDragon) that **manages 
 shader packs**, supports **hot reload**, and provides an Iris-style interface for adjusting
 custom shader parameters.
 
-> Target versions: **Minecraft Bedrock 1.26.51** (client) + **LeviLamina 26.51.x** (Windows x64)
+> Target versions: **Minecraft Bedrock 1.26.51** (client) + **LeviLamina 26.51.7** (Windows x64)
 >
 > Runtime dependency: **Python 3.10 or newer** (Python 3.12+ recommended)
 >
@@ -126,7 +126,7 @@ Fully restart the game after changing the file.
 ## Build
 
 Requirements: Windows x64 + Python 3.10+ + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the
-LeviLamina 26.51.x SDK.
+LeviLamina 26.51.7 SDK.
 
 ```bash
 xmake f -y -p windows -a x64 -m release --target_type=client --mods_dir=<game mods directory>
