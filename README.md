@@ -8,10 +8,37 @@
 > 目标版本：**Minecraft Bedrock 1.26.51**（客户端）+ **LeviLamina 26.51.x**（Windows x64）
 > （材质格式：原版 v26，编译产物也写 v26；读取时兼容 v25 的旧包/旧缓存）
 >
+> 运行依赖：**Python 3.10 或更高版本**（推荐 Python 3.12+）
+>
 > 当前发布：**0.2.0-beta**（预发布；包含兼容报告、Native IO 映射、可复现构建与配置管理修复）
 >
 > 导入格式：`shaderpacks/` 目录里按 `.zip` 读取；把 `.mcpack` 拖进游戏窗口时会
 > **自动改名成 `.zip`** 再导入（`.mcpack` 本身就是一个 zip 容器）。
+
+## Python 运行环境
+
+当前版本会使用随模组分发的 Python 脚本进行光影编译和 Native IO 兼容性校验，因此运行前
+必须安装 **Python 3.10+**：
+
+1. 从 [python.org](https://www.python.org/downloads/windows/) 安装 Python 3。
+2. 安装时勾选 **Python Launcher** 和 **Add Python to PATH**。
+3. 完全退出游戏后，在 PowerShell 或命令提示符中运行：
+
+   ```powershell
+   py -3 --version
+   ```
+
+4. 能正常显示 Python 版本后再启动游戏。
+
+如果系统只有 `python.exe`、没有 `py.exe`，可以编辑模组目录下的
+`config/config.json`，把以下两个命令改成 `python.exe` 的完整路径：
+
+```json
+"lazuriteCommand": "\"C:\\Python路径\\python.exe\" toolchain/lazurite_albite.py",
+"lazuriteAlbiteCommand": "\"C:\\Python路径\\python.exe\" toolchain/lazurite_albite.py",
+```
+
+路径必须替换为本机实际的 `python.exe` 位置，并使用双引号包裹。修改后需要完全重启游戏。
 
 ## 现在能做什么
 
@@ -75,7 +102,8 @@
 
 ## 构建
 
-需要：Windows x64 + xmake + Visual Studio（MSVC）+ LLVM（clang-cl）+ LeviLamina 26.51.x SDK。
+需要：Windows x64 + Python 3.10+ + xmake + Visual Studio（MSVC）+ LLVM（clang-cl）+
+LeviLamina 26.51.x SDK。
 
 ```bash
 xmake f -y -p windows -a x64 -m release --target_type=client --mods_dir=<游戏 mods 目录>

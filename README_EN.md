@@ -8,12 +8,41 @@ custom shader parameters.
 
 > Target versions: **Minecraft Bedrock 1.26.51** (client) + **LeviLamina 26.51.x** (Windows x64)
 >
+> Runtime dependency: **Python 3.10 or newer** (Python 3.12+ recommended)
+>
 > Current release: **0.2.0-beta** (pre-release; includes compatibility reports, Native IO mappings,
 > reproducible builds, and configuration management fixes)
 >
 > Import format: `shaderpacks/` is read as `.zip`. Dropping a `.mcpack` onto the game window is
 > also supported: it is **renamed to `.zip` automatically** before importing (a `.mcpack` is a zip
 > container).
+
+## Python Runtime
+
+The current release uses bundled Python scripts for shader compilation and Native IO compatibility
+validation. Install **Python 3.10+** before running the mod:
+
+1. Install Python 3 from [python.org](https://www.python.org/downloads/windows/).
+2. Enable **Python Launcher** and **Add Python to PATH** during installation.
+3. Fully exit the game, then run this command in PowerShell or Command Prompt:
+
+   ```powershell
+   py -3 --version
+   ```
+
+4. Start the game after the Python version is displayed successfully.
+
+If the system only provides `python.exe` and does not have `py.exe`, edit
+`config/config.json` in the mod directory and replace both commands with the absolute path to
+`python.exe`:
+
+```json
+"lazuriteCommand": "\"C:\\Python-Path\\python.exe\" toolchain/lazurite_albite.py",
+"lazuriteAlbiteCommand": "\"C:\\Python-Path\\python.exe\" toolchain/lazurite_albite.py",
+```
+
+Replace the example path with the actual local `python.exe` path and keep the escaped quotes.
+Fully restart the game after changing the file.
 
 ## Current Features
 
@@ -96,8 +125,8 @@ custom shader parameters.
 
 ## Build
 
-Requirements: Windows x64 + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the LeviLamina 26.51.x
-SDK.
+Requirements: Windows x64 + Python 3.10+ + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the
+LeviLamina 26.51.x SDK.
 
 ```bash
 xmake f -y -p windows -a x64 -m release --target_type=client --mods_dir=<game mods directory>
