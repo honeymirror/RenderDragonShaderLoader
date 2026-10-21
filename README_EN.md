@@ -8,7 +8,8 @@ custom shader parameters.
 
 > Target versions: **Minecraft Bedrock 1.26.51** (client) + **LeviLamina 26.51.7** (Windows x64)
 >
-> Runtime dependency: **Python 3.10 or newer** (Python 3.12+ recommended)
+> Runtime dependency: **Python 3.10–3.14** (Python 3.12 recommended; Python 3.15 is not
+> recommended yet)
 >
 > Current release: **0.2.1** (separates compatibility reports from loading and fixes Forward
 > shader loading on devices without Vibrant Visuals)
@@ -19,27 +20,71 @@ custom shader parameters.
 
 ## Python Runtime
 
-The current release uses bundled Python scripts for shader compilation and Native IO compatibility
-validation. Install **Python 3.10+** before running the mod:
+The current release uses the bundled Lazurite scripts for shader compilation and
+Native IO validation. Supported versions are **CPython 3.10, 3.11, 3.12, 3.13,
+and 3.14**. **Python 3.12 x64 is recommended. Python 3.15 is not recommended yet.**
 
-1. Install Python 3 from [python.org](https://www.python.org/downloads/windows/).
-2. Enable **Python Launcher** and **Add Python to PATH** during installation.
-3. Fully exit the game, then run this command in PowerShell or Command Prompt:
+### Why Python 3.15 is not recommended yet
+
+Compilation and compatibility validation depend on `pyjson5`, which contains a
+Cython extension:
+
+- CPython 3.10–3.14 have prebuilt Windows x64 wheels;
+- Python 3.15 currently has no matching `cp315-win_amd64` wheel;
+- pip therefore falls back to a source build on Python 3.15, requiring Microsoft
+  Visual C++ Build Tools and the Windows SDK;
+- even with Build Tools installed, the current Cython/`pyjson5` versions may still
+  have Python 3.15 source compatibility problems, so this is not the recommended path.
+
+The Windows Python Launcher also resolves `py -3` to the **highest installed
+Python 3 version**. If both 3.12 and 3.15 are installed:
+
+- `py -3` may select 3.15;
+- `py -3.12` explicitly selects 3.12;
+- installing dependencies into 3.12 does not make them visible when the mod runs `py -3`.
+
+### Installation
+
+1. Install **Python 3.12 x64** from
+   [python.org](https://www.python.org/downloads/windows/). Enable **Python Launcher**
+   and **Add Python to PATH**.
+2. Fully exit the game, then confirm the interpreter:
 
    ```powershell
-   py -3 --version
-   py -3 -m pip install -r toolchain/requirements.txt
+   py -0p
+   py -3.12 --version
    ```
 
-   The first command must print a Python version. The second installs the
-   `pyjson5`, `pycryptodome`, and other runtime dependencies used by shader
-   compilation and Native IO validation.
+3. Enter the mod directory and install dependencies with the explicit version:
 
-4. Start the game only after both commands succeed.
+   ```powershell
+   cd /d "<version-directory>\mods\RenderDragonShaderLoader"
+   py -3.12 -m pip install --only-binary=:all: -r toolchain\requirements.txt
+   ```
 
-If the system only provides `python.exe` and does not have `py.exe`, edit
-`config/config.json` in the mod directory and replace both commands with the absolute path to
-`python.exe`:
+   `--only-binary=:all:` forces pip to use prebuilt wheels instead of silently
+   downloading source packages and invoking a C++ compiler.
+
+4. Verify the dependencies:
+
+   ```powershell
+   py -3.12 -c "import pyjson5, Crypto, myers, pcpp, sympy; print('OK')"
+   ```
+
+5. If Python 3.15 is also installed, edit `config/config.json` in the mod
+   directory and select 3.12 explicitly:
+
+   ```json
+   "lazuriteCommand": "py -3.12 toolchain/lazurite_albite.py",
+   "lazuriteAlbiteCommand": "py -3.12 toolchain/lazurite_albite.py",
+   ```
+
+   Fully restart the game after saving the file.
+
+The default command is fine when only Python 3.10–3.14 is installed and
+`py -3` resolves to one of those versions. If the system only provides
+`python.exe` and does not have `py.exe`, replace both commands with the absolute
+path to `python.exe`:
 
 ```json
 "lazuriteCommand": "\"C:\\Python-Path\\python.exe\" toolchain/lazurite_albite.py",
@@ -48,6 +93,11 @@ If the system only provides `python.exe` and does not have `py.exe`, edit
 
 Replace the example path with the actual local `python.exe` path and keep the escaped quotes.
 Fully restart the game after changing the file.
+
+If Python 3.15 must be used, install the Visual Studio Build Tools
+**Desktop development with C++** workload, including the MSVC C++ build tools
+and Windows SDK, then install without `--only-binary=:all:`. This path is not
+officially recommended for the current release.
 
 ## Current Features
 
@@ -132,7 +182,7 @@ Fully restart the game after changing the file.
 
 ## Build
 
-Requirements: Windows x64 + Python 3.10+ + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the
+Requirements: Windows x64 + Python 3.10–3.14 + xmake + Visual Studio (MSVC) + LLVM (clang-cl) + the
 LeviLamina 26.51.7 SDK.
 
 ```bash

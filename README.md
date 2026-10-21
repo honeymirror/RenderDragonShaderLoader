@@ -8,7 +8,7 @@
 > 目标版本：**Minecraft Bedrock 1.26.51**（客户端）+ **LeviLamina 26.51.7**（Windows x64）
 > （材质格式：原版 v26，编译产物也写 v26；读取时兼容 v25 的旧包/旧缓存）
 >
-> 运行依赖：**Python 3.10 或更高版本**（推荐 Python 3.12+）
+> 运行依赖：**Python 3.10–3.14**（推荐 Python 3.12；暂不建议 Python 3.15）
 >
 > 当前发布：**0.2.1**（兼容报告与加载分离；修复无灵动视效设备上的 Forward 光影加载）
 >
@@ -17,25 +17,68 @@
 
 ## Python 运行环境
 
-当前版本会使用随模组分发的 Python 脚本进行光影编译和 Native IO 兼容性校验，因此运行前
-必须安装 **Python 3.10+**：
+当前版本使用随模组分发的 Lazurite 脚本进行光影编译和 Native IO 兼容性校验。
+支持 **CPython 3.10、3.11、3.12、3.13、3.14**，推荐安装 **Python 3.12 x64**。
+**暂不建议 Python 3.15。**
 
-1. 从 [python.org](https://www.python.org/downloads/windows/) 安装 Python 3。
-2. 安装时勾选 **Python Launcher** 和 **Add Python to PATH**。
-3. 完全退出游戏后，在 PowerShell 或命令提示符中运行：
+### 为什么暂不建议 Python 3.15
+
+编译和兼容性校验依赖 `pyjson5`，它是带 Cython 扩展的模块：
+
+- Python 3.10–3.14 在 Windows x64 上有可直接安装的预编译 wheel；
+- 当前 Python 3.15 没有对应的 `cp315-win_amd64` wheel；
+- pip 在 Python 3.15 上会退回到源码编译，需要 Microsoft Visual C++ Build Tools
+  和 Windows SDK；
+- 即使安装了 Build Tools，Python 3.15 与当前 Cython/`pyjson5` 版本仍可能出现源码兼容
+  问题，因此这不是推荐方案。
+
+另外，Windows Python Launcher 的 `py -3` 会选择**已安装的最高 Python 3 版本**。
+如果电脑同时有 3.12 和 3.15，那么：
+
+- `py -3` 可能使用 3.15；
+- `py -3.12` 才会明确使用 3.12；
+- 依赖安装在 3.12，不代表模组使用 `py -3` 时也能找到这些依赖。
+
+### 安装步骤
+
+1. 从 [python.org](https://www.python.org/downloads/windows/) 安装
+   **Python 3.12 x64**。安装时勾选 **Python Launcher** 和 **Add Python to PATH**。
+2. 完全退出游戏，在 PowerShell 或命令提示符中确认解释器：
 
    ```powershell
-   py -3 --version
-   py -3 -m pip install -r toolchain/requirements.txt
+   py -0p
+   py -3.12 --version
    ```
 
-   第一条命令应正常显示 Python 版本；第二条会安装兼容校验和编译所需的
-   `pyjson5`、`pycryptodome` 等依赖。
+3. 进入模组目录，使用明确的 Python 版本安装依赖：
 
-4. 两条命令都成功后再启动游戏。
+   ```powershell
+   cd /d "<版本目录>\mods\RenderDragonShaderLoader"
+   py -3.12 -m pip install --only-binary=:all: -r toolchain\requirements.txt
+   ```
 
-如果系统只有 `python.exe`、没有 `py.exe`，可以编辑模组目录下的
-`config/config.json`，把以下两个命令改成 `python.exe` 的完整路径：
+   `--only-binary=:all:` 会强制使用预编译 wheel，避免 pip 在没有提示的情况下
+   下载源码并调用 C++ 编译器。
+
+4. 验证依赖：
+
+   ```powershell
+   py -3.12 -c "import pyjson5, Crypto, myers, pcpp, sympy; print('OK')"
+   ```
+
+5. 如果电脑还安装了 Python 3.15，编辑模组目录下的 `config/config.json`，
+   明确指定 3.12：
+
+   ```json
+   "lazuriteCommand": "py -3.12 toolchain/lazurite_albite.py",
+   "lazuriteAlbiteCommand": "py -3.12 toolchain/lazurite_albite.py",
+   ```
+
+   修改后必须完全退出并重新启动游戏。
+
+PC 上只安装了 3.10–3.14 且 `py -3` 指向其中某个版本时，也可以继续使用默认命令。
+如果系统只有 `python.exe`、没有 `py.exe`，请把以下两个命令改成 `python.exe`
+的完整路径：
 
 ```json
 "lazuriteCommand": "\"C:\\Python路径\\python.exe\" toolchain/lazurite_albite.py",
@@ -43,6 +86,10 @@
 ```
 
 路径必须替换为本机实际的 `python.exe` 位置，并使用双引号包裹。修改后需要完全重启游戏。
+
+如果坚持使用 Python 3.15，需要安装 Visual Studio Build Tools 的
+**“使用 C++ 的桌面开发”**工作负载，包括 MSVC C++ 生成工具和 Windows SDK，
+然后改用不带 `--only-binary=:all:` 的命令安装。该路线不受当前版本正式推荐。
 
 ## 现在能做什么
 
@@ -108,7 +155,7 @@
 
 ## 构建
 
-需要：Windows x64 + Python 3.10+ + xmake + Visual Studio（MSVC）+ LLVM（clang-cl）+
+需要：Windows x64 + Python 3.10–3.14 + xmake + Visual Studio（MSVC）+ LLVM（clang-cl）+
 LeviLamina 26.51.7 SDK。
 
 ```bash
