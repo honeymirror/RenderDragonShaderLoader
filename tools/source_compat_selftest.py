@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import unittest
 
@@ -214,6 +215,40 @@ class NativeIOValidationTests(unittest.TestCase):
             report["issues"][0]["message"],
         )
         self.assertEqual("overrides.json", Path(report["overridesPath"]).name)
+
+    def test_missing_python_dependencies_write_a_report(self) -> None:
+        report_path = ROOT / "build" / "native-io-missing-dependencies.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.unlink(missing_ok=True)
+        self.addCleanup(report_path.unlink, missing_ok=True)
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-S",
+                str(ROOT / "tools" / "native_io_validate.py"),
+                "--candidate",
+                str(ROOT / "samples" / "compat" / "deferred.material-io.json"),
+                "--engine",
+                str(
+                    ROOT
+                    / "samples"
+                    / "compat"
+                    / "RenderDragon-26.51.vanilla.material-io.json"
+                ),
+                "--json-out",
+                str(report_path),
+                "--check",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(1, result.returncode, result.stdout + result.stderr)
+        self.assertTrue(report_path.is_file(), result.stdout + result.stderr)
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        self.assertEqual("contract.load-failed", report["issues"][0]["code"])
+        self.assertIn("toolchain/requirements.txt", report["issues"][0]["message"])
 
     def test_attribute_semantic_not_provided(self) -> None:
         candidate = self.candidate()

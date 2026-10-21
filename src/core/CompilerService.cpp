@@ -1239,6 +1239,50 @@ std::string firstNativeIOIssue(NativeIOReport const& report) {
     return {};
 }
 
+NativeIOReport nativeIOUnavailableReport(
+    std::string const& code,
+    std::string const& message
+) {
+    NativeIOIssue issue;
+    issue.kind     = "error";
+    issue.code     = code;
+    issue.material = "<pack>";
+    issue.message  = message;
+
+    NativeIOReport report;
+    report.available     = true;
+    report.ok            = false;
+    report.schemaVersion = 1;
+    report.errors        = 1;
+    report.issues.push_back(std::move(issue));
+
+    nlohmann::ordered_json root;
+    root["schemaVersion"]     = 1;
+    root["target"]            = "RenderDragon-26.51";
+    root["summary"] = {
+        {"candidateMaterials", 0},
+        {"engineMaterials", 0},
+        {"commonMaterials", 0},
+        {"engineMaterialsUnused", 0},
+        {"errors", 1},
+        {"warnings", 0},
+        {"overridesApplied", 0},
+        {"overridesUnused", 0},
+    };
+    root["issues"] = nlohmann::ordered_json::array();
+    root["issues"].push_back({
+        {"kind", "error"},
+        {"code", code},
+        {"material", "<pack>"},
+        {"pass", ""},
+        {"buffer", ""},
+        {"message", message},
+    });
+    root["overriddenIssues"] = nlohmann::ordered_json::array();
+    report.json = root.dump(2) + "\n";
+    return report;
+}
+
 bool validateNativeIOWithPython(
     CompilerSettings const&                        settings,
     std::filesystem::path const&                   packDir,
@@ -1253,6 +1297,7 @@ bool validateNativeIOWithPython(
     });
     if (validationScript.empty()) {
         error = "native IO validator not found in toolchain/ or tools/";
+        report = nativeIOUnavailableReport("validator.script-missing", error);
         return false;
     }
 
@@ -1264,6 +1309,7 @@ bool validateNativeIOWithPython(
     });
     if (engineContract.empty()) {
         error = "native IO engine contract not found";
+        report = nativeIOUnavailableReport("validator.contract-missing", error);
         return false;
     }
     std::vector<std::string> args = splitCommandPrefix(settings.lazuriteCommand);
@@ -1303,11 +1349,13 @@ bool validateNativeIOWithPython(
     }
 
     std::string firstError;
+    std::string lastOutputLine;
     auto captureLine = [&](std::string const& line) {
         if (onLine) onLine("[io] " + line);
         if (firstError.empty() && line.starts_with("ERROR ")) {
             firstError = line;
         }
+        if (!line.empty()) lastOutputLine = line;
     };
 
     unsigned long exitCode = 1;
@@ -1328,14 +1376,17 @@ bool validateNativeIOWithPython(
     );
     if (!started) {
         error = "cannot start native IO validator: " + runError;
+        report = nativeIOUnavailableReport("validator.start-failed", error);
         return false;
     }
     if (timedOut) {
         error = "native IO validation timed out";
+        report = nativeIOUnavailableReport("validator.timeout", error);
         return false;
     }
     if (cancelled) {
         error = "native IO validation cancelled";
+        report = nativeIOUnavailableReport("validator.cancelled", error);
         return false;
     }
 
@@ -1349,9 +1400,12 @@ bool validateNativeIOWithPython(
             error += ": " + firstError;
         } else if (!runError.empty()) {
             error += ": " + runError;
+        } else if (!lastOutputLine.empty()) {
+            error += " (exit " + std::to_string(exitCode) + "): " + lastOutputLine;
         } else {
             error += ": " + parseError;
         }
+        report = nativeIOUnavailableReport("validator.no-report", error);
         return false;
     }
 
@@ -2623,35 +2677,10 @@ void CompilerService::run(std::filesystem::path packDir, CompileOptions options)
         );
     }
 
-    NativeIOReport ioReport;
-    std::string   ioValidationError;
-    if (!validateNativeIOWithPython(
-            settings,
-            packDir,
-            buildDir,
-            [&](std::string const& line) { appendLog(line); },
-            ioReport,
-            ioValidationError
-        )) {
-        appendLog(ioValidationError);
-        std::filesystem::remove_all(buildDir, ec);
-        CompileFinishedInfo info;
-        info.status    = CompileStatus::Failed;
-        info.packDir   = packDir;
-        info.outputDir = finalDir;
-        info.packName  = options.packName;
-        info.preset    = options.preset;
-        info.message   = ioValidationError;
-        finish(CompileStatus::Failed, ioValidationError, info);
-        return;
-    }
-    appendLog(
-        "native material IO validation passed: materials="
-        + std::to_string(ioReport.commonMaterials)
-        + " errors=" + std::to_string(ioReport.errors)
-        + " warnings=" + std::to_string(ioReport.warnings)
-        + " overrides=" + std::to_string(ioReport.overridesApplied)
-    );
+    // Native IO compatibility is an explicit diagnostic. Compilation still
+    // validates requested mappings, but an incompatible base contract no longer
+    // prevents the compiled pack from being published and loaded.
+    appendLog("native material IO validation deferred to compatibility preflight");
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - started

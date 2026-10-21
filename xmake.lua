@@ -47,7 +47,7 @@ end
 
 target("RenderDragonShaderLoader") -- 改成你的模组名（只允许英文字母、数字、中划线）
     add_rules("@levibuildscript/linkrule")
-    add_rules("@levibuildscript/modpacker", {modVersion = "0.2.0-beta"})
+    add_rules("@levibuildscript/modpacker", {modVersion = "0.2.1"})
     if is_plat("windows") then
         -- LeviLamina 26.51 的 SDK 头（ll/api/reflection/Reflection.h）用了 std::to_underlying
         -- 这类 C++23 设施，而 SDK 自己的构建设的是 c++20 + _HAS_CXX23=1（见 SDK 的 xmake.lua

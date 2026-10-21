@@ -10,8 +10,8 @@ custom shader parameters.
 >
 > Runtime dependency: **Python 3.10 or newer** (Python 3.12+ recommended)
 >
-> Current release: **0.2.0-beta** (pre-release; includes compatibility reports, Native IO mappings,
-> reproducible builds, and configuration management fixes)
+> Current release: **0.2.1** (separates compatibility reports from loading and fixes Forward
+> shader loading on devices without Vibrant Visuals)
 >
 > Import format: `shaderpacks/` is read as `.zip`. Dropping a `.mcpack` onto the game window is
 > also supported: it is **renamed to `.zip` automatically** before importing (a `.mcpack` is a zip
@@ -28,9 +28,14 @@ validation. Install **Python 3.10+** before running the mod:
 
    ```powershell
    py -3 --version
+   py -3 -m pip install -r toolchain/requirements.txt
    ```
 
-4. Start the game after the Python version is displayed successfully.
+   The first command must print a Python version. The second installs the
+   `pyjson5`, `pycryptodome`, and other runtime dependencies used by shader
+   compilation and Native IO validation.
+
+4. Start the game only after both commands succeed.
 
 If the system only provides `python.exe` and does not have `py.exe`, edit
 `config/config.json` in the mod directory and replace both commands with the absolute path to
@@ -84,6 +89,8 @@ Fully restart the game after changing the file.
   "Graphics mode override" entry in the settings page lets the player correct it.)
 - The shader pack that was enabled when the panel was closed / the game exited is remembered and
   loaded again on the next startup (can be turned off in the settings page).
+- Native IO compatibility is an independent diagnostic. Click the top-left `i` button to inspect
+  the selected pack; an "Incompatible (load allowed)" result does not block applying the shader.
 - The custom parameter interface follows Iris conventions: it has category and parameter pages,
   with both two-column and full-width layouts.
 - Supported parameter controls include sliders, checkboxes, enums, and colors. Sliders expand on

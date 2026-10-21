@@ -29,6 +29,9 @@ RenderDragonShaderLoader 使用 GNU Lesser General Public License v3.0（LGPL-3.
 - [Lazurite](https://github.com/veka0/lazurite): LGPL-3.0. `toolchain/lazurite-albite-compat/`
   contains the albite-compatible source tree. The project modifies its BGFX preprocessing path for
   albite; see the source diff against upstream in `src/lazurite/project/project.py`.
+- Lazurite runtime Python dependencies (`pyjson5`, `myers`, `pcpp`, `pycryptodome`, `sympy`) are
+  installed into the user's Python environment from `toolchain/requirements.txt`; they are not
+  vendored binaries.
 - [Albite](https://github.com/bambosan/albite): MIT License. `toolchain/albite/albite.exe` is the
   official v0.4.0 Windows binary.
 - [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler): University of

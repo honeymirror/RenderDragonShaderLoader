@@ -13,7 +13,12 @@ TOOL_DIR = Path(__file__).resolve().parent
 ROOT = TOOL_DIR.parent
 sys.path.insert(0, str(TOOL_DIR))
 
-import material_io_dump  # noqa: E402
+MATERIAL_IO_IMPORT_ERROR: Exception | None = None
+try:
+    import material_io_dump  # noqa: E402
+except Exception as error:  # ImportError or a native dependency load failure
+    material_io_dump = None
+    MATERIAL_IO_IMPORT_ERROR = error
 
 
 KNOWN_ISSUE_CODES = {
@@ -33,6 +38,8 @@ KNOWN_ISSUE_CODES = {
 
 
 def load_contract(path: Path) -> dict:
+    if material_io_dump is None:
+        raise RuntimeError(f"material IO parser is unavailable: {MATERIAL_IO_IMPORT_ERROR}")
     if path.is_dir():
         errors: list[str] = []
         report = material_io_dump.build_report(path.resolve(), errors)
@@ -456,6 +463,23 @@ def main() -> int:
     candidate_path = args.candidate.resolve()
     engine_path = args.engine.resolve()
     overrides_path = args.overrides.resolve() if args.overrides else None
+    if MATERIAL_IO_IMPORT_ERROR is not None:
+        message = (
+            f"cannot import material IO parser: {MATERIAL_IO_IMPORT_ERROR}. "
+            "Install the runtime dependencies with: "
+            "py -3 -m pip install -r toolchain/requirements.txt"
+        )
+        report = load_failure_report(message, candidate_path, engine_path, overrides_path)
+        summary = report["summary"]
+        print(
+            f"candidate={summary['candidateMaterials']} engine={summary['engineMaterials']} "
+            f"common={summary['commonMaterials']} errors={summary['errors']} "
+            f"warnings={summary['warnings']}"
+        )
+        print(f"ERROR [contract.load-failed] <pack>: {message}")
+        write_json_report(report, args.json_out)
+        return 1
+
     try:
         candidate = load_contract(candidate_path)
         engine = load_contract(engine_path)

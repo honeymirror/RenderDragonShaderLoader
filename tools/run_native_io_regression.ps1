@@ -94,6 +94,7 @@ $source = Join-Path $Root "phase6b-src"
 $compiled = Join-Path $Root "compiled"
 $cache = Join-Path $Root "cache"
 $mappingPath = Join-Path $source "rdloader.io-mappings.json"
+$overridePath = Join-Path $source "rdloader.io-overrides.json"
 
 try {
     if (Test-Path -LiteralPath $Root) {
@@ -153,7 +154,7 @@ try {
     }
     Write-JsonFile $mappingPath $fullMapping
 
-    Write-Host "[1/5] Generate compile cache from canonical output"
+    Write-Host "[1/6] Generate compile cache from canonical output"
     $first = Invoke-Compile $source $compiled
     Assert-True ($first.ExitCode -ne 0) "First compile should fail because mapping targets are not yet present"
     Assert-True (($first.Output -join "`n") -match "mapping.unused") "Expected mapping.unused from canonical candidate"
@@ -176,7 +177,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "probe generation failed" }
     Copy-Item -LiteralPath $probe -Destination $cacheFile.FullName -Force
 
-    Write-Host "[2/5] Apply attribute + buffer + pass mappings after cache hit"
+    Write-Host "[2/6] Apply attribute + buffer + pass mappings after cache hit"
     $second = Invoke-Compile $source $compiled
     $second.Output | Out-Host
     Assert-True ($second.ExitCode -eq 0) "Mapped cache-hit compile failed"
@@ -194,7 +195,7 @@ try {
     Assert-True ($bufferNames -notcontains "ProbeColorTexture") "probe buffer was not rewritten"
     Assert-True ($material.passes.ColorPostProcess.outputBindingSignature -eq "0x4BA175A2") "pass signature was not rewritten"
 
-    Write-Host "[3/5] Read the compatibility report twice"
+    Write-Host "[3/6] Read the compatibility report twice"
     $io = Invoke-IOValidation $source $compiled
     $io.Output | Out-Host
     Assert-True ($io.ExitCode -eq 0) "compatibility report validation failed"
@@ -203,7 +204,30 @@ try {
     Assert-True (($io.Output -join "`n") -match "mapping passes") "pass mapping record is missing"
     Assert-True (($io.Output -join "`n") -match "mapping attributes") "attribute mapping record is missing"
 
-    Write-Host "[4/5] Verify failure does not replace previous output"
+    Write-Host "[4/6] Verify preflight failure does not block compilation"
+    Write-JsonFile $overridePath ([ordered]@{
+        version = 1
+        target = "RenderDragon-26.51"
+        allow = @(
+            [ordered]@{
+                id = "intentionally-unused-preflight-test"
+                code = "pass.output-signature-mismatch"
+                material = "MaterialThatDoesNotExist"
+                pass = "PassThatDoesNotExist"
+                reason = "Explicit preflight must fail without blocking normal compilation"
+            }
+        )
+    })
+    $preflightOnly = Invoke-IOValidation $source $compiled
+    $preflightOnly.Output | Out-Host
+    Assert-True ($preflightOnly.ExitCode -ne 0) "Explicit preflight must report the unused override"
+    Assert-True (($preflightOnly.Output -join "`n") -match "override.unused") "Expected override.unused from preflight"
+    $compileDespitePreflight = Invoke-Compile $source $compiled
+    $compileDespitePreflight.Output | Out-Host
+    Assert-True ($compileDespitePreflight.ExitCode -eq 0) "Preflight incompatibility must not block compilation"
+    Remove-Item -LiteralPath $overridePath -Force
+
+    Write-Host "[5/6] Verify failure does not replace previous output"
     $tracked = @(
         (Join-Path $compiled "Actor.material.bin"),
         (Join-Path $compiled "ColorPostProcessing.material.bin"),
@@ -238,7 +262,7 @@ try {
     }
     Write-JsonFile $mappingPath $fullMapping
 
-    Write-Host "[5/5] Run full Native IO self-test"
+    Write-Host "[6/6] Run full Native IO self-test"
     Push-Location $project
     try {
         & py -3 "tools\source_compat_selftest.py"
@@ -248,7 +272,7 @@ try {
     }
 
     Write-Host "PASS: Native IO phase 6B regression"
-    Write-Host "  mappings=3, cache-hit=true, failure-protected=true, selftest=28/28"
+    Write-Host "  mappings=3, cache-hit=true, preflight-independent=true, failure-protected=true, selftest=29/29"
 } finally {
     Remove-Item Env:RDL_BACKEND -ErrorAction SilentlyContinue
     Remove-Item Env:RDL_MATERIALS -ErrorAction SilentlyContinue

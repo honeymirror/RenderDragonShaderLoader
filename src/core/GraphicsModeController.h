@@ -20,9 +20,6 @@ public:
     static bool applyForPack(ShaderPack const& pack);
     static bool applyForRenderMode(ShaderRenderMode mode, std::uint64_t* pendingFlags = nullptr);
     static bool applyForward(std::uint64_t* pendingFlags = nullptr);
-    // 设备是否具备运行延迟光影的条件（灵动视效允许 + PBR/性能检查）。
-    static bool canApplyRenderMode(ShaderRenderMode mode);
-
     // Advanced -> Fancy 时引擎会复用缓存的 Fancy 材质，不一定重新读文件。
     // 等模式切换稳定后再执行一次安全的 Forward 刷新；空目录表示恢复原版。
     static void queueForwardReloadAfterModeChange(std::filesystem::path outputDir);

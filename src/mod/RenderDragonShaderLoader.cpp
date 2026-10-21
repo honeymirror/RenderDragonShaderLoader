@@ -252,20 +252,6 @@ void RenderDragonShaderLoader::restoreLastShaderOnStart() {
         logger.warn("Last shader pack '{}' failed output validation: {}", config.lastShaderPack, validationError);
         return;
     }
-    if (!CompilerService::getInstance().validateNativeIO(
-            pack->sourceDir,
-            pack->binsDir,
-            validationError
-        )) {
-        logger.warn(
-            "Last shader pack '{}' failed native IO validation: {}",
-            config.lastShaderPack,
-            validationError
-        );
-        CompilerService::getInstance().setStatusNotice(validationError);
-        return;
-    }
-
     auto const mode  = applyRenderModeOverride(pack->renderMode, config.graphicsModeOverride);
     auto const dir   = pack->binsDir;
     auto const name  = pack->name;
@@ -354,26 +340,6 @@ bool RenderDragonShaderLoader::usePackAt(
         if (compiledOutputNeedsRebuild(targetDir)) {
             error = name + " compiled output is stale; apply it again to recompile";
         }
-        return false;
-    }
-    if (!CompilerService::getInstance().validateNativeIO(
-            pack->sourceDir,
-            targetDir,
-            validationError
-        )) {
-        error = validationError;
-        CompilerService::getInstance().setStatusNotice(validationError);
-        getSelf().getLogger().error(
-            "[io] refused to load '{}': {}",
-            name,
-            validationError
-        );
-        return false;
-    }
-    // 延迟光影（Deferred）：设备必须能开灵动视效，否则拒绝加载。
-    // 具体"资源就绪后再挂材质"由 compile-finished 回调里的 deferral 处理。
-    if (!GraphicsModeController::canApplyRenderMode(pack->renderMode)) {
-        error = "Deferred shader could not load (Vibrant Visuals unavailable)";
         return false;
     }
     if (pack->renderMode == ShaderRenderMode::Deferred) {
@@ -815,23 +781,11 @@ bool RenderDragonShaderLoader::load() {
             if (std::filesystem::is_directory(lastPack->binsDir, ec)
                 && !compiledOutputNeedsRebuild(lastPack->binsDir)
                 && validateCompiledOutput(lastPack->binsDir, &validationError)) {
-                if (!CompilerService::getInstance().validateNativeIO(
-                        lastPack->sourceDir,
-                        lastPack->binsDir,
-                        validationError
-                    )) {
-                    logger.warn(
-                        "[startup] skipped early redirect for '{}': {}",
-                        lastPack->name,
-                        validationError
-                    );
-                } else {
-                    MaterialHooks::getInstance().setOverrideDir(lastPack->binsDir);
-                    logger.info(
-                        "[startup] material redirect enabled early -> {}",
-                        lastPack->binsDir.string()
-                    );
-                }
+                MaterialHooks::getInstance().setOverrideDir(lastPack->binsDir);
+                logger.info(
+                    "[startup] material redirect enabled early -> {}",
+                    lastPack->binsDir.string()
+                );
             } else {
                 logger.warn(
                     "[startup] skipped early redirect for '{}': {}",

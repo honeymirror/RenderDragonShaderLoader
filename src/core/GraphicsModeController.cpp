@@ -252,12 +252,6 @@ void pumpForwardRefresh(
 
 } // namespace
 
-bool GraphicsModeController::canApplyRenderMode(ShaderRenderMode mode) {
-        // 26.51 上能否应用只取决于游戏是否已经跑起来。
-    (void)mode;
-    return ll::service::getClientInstance() != nullptr;
-}
-
 bool GraphicsModeController::applyForRenderMode(ShaderRenderMode mode, std::uint64_t* pendingFlags) {
     if (pendingFlags != nullptr) *pendingFlags = 0;
     forwardRefreshToken().reset();

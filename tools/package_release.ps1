@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.2.0-beta"
+    [string]$Version = "0.2.1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -55,6 +55,7 @@ Windows x64 pre-release for Minecraft Bedrock 1.26.51 and LeviLamina 26.51.x.
 
 Highlights:
 - Structured Native IO compatibility reports and exports.
+- Native IO preflight is independent from loading: incompatible packs can still be applied.
 - Attribute, buffer, and pass-output mapping support.
 - Deferred and forward compatibility regressions with optional albite validation.
 - A complete custom-parameter author guide in `CUSTOM-PARAMETERS.md`.
@@ -75,7 +76,8 @@ $privacyPatterns = @(
     $env:USERPROFILE,
     $env:USERNAME,
     $project,
-    $env:RDL_GAME_DIR
+    $env:RDL_GAME_DIR,
+    "private-archive"
 ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 
 foreach ($pattern in $privacyPatterns) {
@@ -86,6 +88,38 @@ foreach ($pattern in $privacyPatterns) {
     }
     if ($LASTEXITCODE -gt 1) {
         throw "Privacy scan failed with exit code $LASTEXITCODE"
+    }
+}
+
+$privacyRegexes = @(
+    "[A-Za-z]:\\Users\\[^\\\r\n]+",
+    "[A-Za-z]:\\(?:LeviLauncher|levilauncher|LeviLauncher_Data)"
+)
+foreach ($pattern in $privacyRegexes) {
+    $textHits = & rg -n -i -e $pattern -- $stage 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $textHits | Out-Host
+        throw "Release text contains a private local path: $pattern"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "Text privacy scan failed with exit code $LASTEXITCODE"
+    }
+}
+
+$secretPatterns = @(
+    "github_pat_[A-Za-z0-9_]{20,}",
+    "ghp_[A-Za-z0-9]{20,}",
+    "BEGIN (RSA|OPENSSH|EC) PRIVATE KEY",
+    "Authorization: Bearer [A-Za-z0-9._-]+"
+)
+foreach ($pattern in $secretPatterns) {
+    $secretHits = & rg -a -n -i -e $pattern -- $stage 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $secretHits | Out-Host
+        throw "Release package contains a credential-like value: $pattern"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "Credential scan failed with exit code $LASTEXITCODE"
     }
 }
 

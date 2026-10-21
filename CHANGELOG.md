@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.1
+
+### Fixed
+
+- 修复 Forward 光影在加载前被图形模式预检查错误拒绝的问题。没有灵动视效的设备
+  现在可以在 Fancy 模式下加载 NewBx 等前向光影。
+- Native IO 预检与加载彻底分离。不兼容结果仍会完整显示和导出，但不再阻止 Apply、
+  启动恢复、early redirect 或编译产物发布。
+- Python 依赖缺失时，兼容性校验现在会生成结构化报告并给出安装命令，不再只显示
+  “没有写出 JSON 报告”。
+
 ## 0.2.0-beta
 
 首个公开预发布之后的兼容性与参数完善版本，重点补齐 Native IO 预检、结构化兼容报告、
@@ -26,8 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- 编译、预编译和缓存恢复统一使用结构化兼容状态；失败时不再提交 applied 状态，
-  也不会替换上一份可用产物。
+- Native IO 预检与光影加载彻底分离：不兼容只作为诊断结果，不再阻止 Apply、
+  启动恢复、early redirect 或编译产物发布；没有产物、产物过期等结构错误仍会阻止加载。
+- 编译与预编译路径不再自动执行完整 IO 预检；只有用户打开兼容性预检或显式运行
+  validator 时才做完整检查。映射改写本身仍必须安全通过。
 - 缓存命中时继续保留 `meta.json` 中已应用的映射详情。
 - Windows 构建使用可复现的 PE 时间戳和稳定的 PDB 名称。
 - 配置名称暂时只接受英文 / ASCII 输入；光影参数通过包内语言文件仍可显示中文。
@@ -36,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 修复兼容性页面在“无编译产物”和“无错误项”之间反复变化的问题。
 - 修复旧缓存元数据缺少映射数组时无法恢复兼容报告的问题。
+- 修复 Python 依赖缺失时兼容页只显示“没有写出 JSON 报告”、无法导出诊断的问题；
+  现在会生成结构化 `validator.no-report` 报告并保留具体 Python 错误。
 - 修复重置配置后仍显示为 `Custom`、没有回到当前命名配置的问题。
 - 修复删除当前配置后参数残留在默认配置中的问题。
 - 修复失败校验可能影响 applied 状态或覆盖上一份可用产物的问题。

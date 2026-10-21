@@ -726,7 +726,7 @@ void Screen::drawCompatibility(Canvas& canvas, float width, float height) {
                        ? tr("Compatible with warnings")
                        : tr("Compatible");
         } else {
-            status = tr("Compatibility failed");
+            status = tr("Incompatible (load allowed)");
         }
         statusColor = mCompatibility.ok ? accentColor : failColor;
     }
@@ -1991,9 +1991,8 @@ bool Screen::applyPending() {
                     compileAppliedImmediately = true;
                 } else if (mHost.reload) {
                     if (!mHost.reload(pack)) {
-                        // 图形模式/设备能力不允许这个包，保持"未启用"并提示原因。
-                        notice(tr("Deferred shader could not load (Vibrant Visuals unavailable)"), true);
-                        log("[ui] '" + pack.name + "' refused: graphics mode unavailable");
+                        notice(tr("Shader could not load"), true);
+                        log("[ui] '" + pack.name + "' reload was refused");
                         return false;
                     }
                 }

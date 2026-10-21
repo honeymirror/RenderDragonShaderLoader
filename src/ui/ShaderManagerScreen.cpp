@@ -658,28 +658,11 @@ ShaderManagerScreen::ShaderManagerScreen() {
         return report;
     };
 
-    // 列表页的「应用」= 先按光影的渲染路线切图形模式，再把已有产物挂上去。
+    // 列表页的「应用」只负责加载；Native IO 兼容性是独立诊断，不阻止加载。
     host.reload = [](ShaderPack const& pack) -> bool {
-        std::string ioError;
-        if (!CompilerService::getInstance().validateNativeIO(
-                pack.sourceDir,
-                pack.binsDir,
-                ioError
-            )) {
-            uiTrace("reload: native IO validation failed: " + ioError);
-            CompilerService::getInstance().setStatusNotice(ioError);
-            return false;
-        }
         // 玩家可以在模组设置页里手动覆盖图形模式（自动判定只是按文件名猜的）。
         auto const overrideMode = RenderDragonShaderLoader::getInstance().getConfig().graphicsModeOverride;
         auto const mode         = applyRenderModeOverride(pack.renderMode, overrideMode);
-        if (!GraphicsModeController::canApplyRenderMode(mode)) {
-            uiTrace("reload: refused '" + pack.name + "' (graphics mode unavailable)");
-            CompilerService::getInstance().setStatusNotice(
-                "Deferred shader could not load (Vibrant Visuals unavailable)"
-            );
-            return false;
-        }
         if (mode == ShaderRenderMode::Deferred) {
             ll::thread::ClientThreadExecutor::getDefault().execute([binsDir = pack.binsDir] {
                 GraphicsModeController::queueDeferredPackSwitch(binsDir);
